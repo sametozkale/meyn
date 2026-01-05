@@ -1,0 +1,3931 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Meyn AI - PromptOps platform for vibe coders | Meyn AI</title>
+  <meta name="description" content="A platform that orchestrates your AI coding agents with structured specs. Real-time feature tracking, visual spec-to-code traceability, and automated drift detection. Built for serious vibe coders who want to move fast without breaking things." />
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://meyn.work/" />
+  <meta property="og:title" content="PromptOps - Spec-driven development for vibe coders" />
+  <meta property="og:description" content="A platform that orchestrates your AI coding agents with structured specs. Real-time feature tracking, visual spec-to-code traceability, and automated drift detection." />
+  
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:url" content="https://meyn.work/" />
+  <meta property="twitter:title" content="PromptOps - Spec-driven development for vibe coders" />
+  <meta property="twitter:description" content="A platform that orchestrates your AI coding agents with structured specs. Real-time feature tracking, visual spec-to-code traceability, and automated drift detection." />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: "#00B5E9",
+            textMuted: "#BBBCC3",
+          },
+          fontFamily: {
+            open: ['"Open Runde"', "Inter", "system-ui", "-apple-system", "sans-serif"],
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    /* Font: replace src with actual Open Runde files once available */
+    @font-face {
+      font-family: "Open Runde";
+      src: local("Open Runde"), local("OpenRunde");
+      font-weight: 400;
+      font-style: normal;
+    }
+    
+    .input-group:focus-within svg path {
+      fill: #00B5E9;
+    }
+    
+    .option-btn.selected {
+      border-color: #E4E4E4;
+    }
+    
+    .option-btn[data-option="1"] .option-icon path {
+      fill: #DDDDDD;
+      transition: fill 0.2s;
+    }
+    
+    .option-btn[data-option="1"].selected .option-icon path {
+      fill: #FF4D5E;
+    }
+    
+    .option-btn[data-option="2"] .option-icon path {
+      fill: #DDDDDD;
+      transition: fill 0.2s;
+    }
+    
+    .option-btn[data-option="2"].selected .option-icon path {
+      fill: #5DDC6D;
+    }
+    
+    .option-btn[data-option="3"] .option-icon path {
+      fill: #DDDDDD;
+      transition: fill 0.2s;
+    }
+    
+    .option-btn[data-option="3"].selected .option-icon path {
+      fill: #979797;
+    }
+    
+    .option-btn.selected span {
+      color: #979797;
+    }
+    
+    .pricing-option-btn {
+      color: #666;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+    }
+    
+    .pricing-option-btn:hover {
+      color: #181925;
+    }
+    
+    .pricing-option-btn.selected {
+      color: #181925;
+      background: #F7F7F7;
+    }
+    
+    .faq-item {
+      width: 100%;
+    }
+    
+    .faq-question {
+      width: 100%;
+      border: none;
+      background: #FBFBFB;
+      cursor: pointer;
+      text-align: left;
+    }
+    
+    .faq-question[aria-expanded="true"] {
+      border: none;
+      outline: none;
+    }
+    
+    .faq-question:focus {
+      outline: 2px solid #00B5E9;
+      outline-offset: 2px;
+    }
+    
+    .faq-question[aria-expanded="true"]:focus {
+      outline: none;
+    }
+    
+    .faq-answer {
+      width: 100%;
+      display: none;
+    }
+    
+    .faq-answer:not(.hidden) {
+      display: flex;
+    }
+    
+    .faq-icon {
+      transition: transform 0.3s ease;
+    }
+    
+    .faq-question[aria-expanded="true"] {
+      border-radius: 16px 16px 0px 0px;
+    }
+    
+    .faq-question[aria-expanded="true"]:hover {
+      background: #FBFBFB;
+    }
+    
+    .faq-answer:not(.hidden) {
+      border-radius: 0px 0px 16px 16px;
+    }
+    
+    /* Video Modal Styles */
+    .video-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    
+    .video-modal.active {
+      display: flex;
+      opacity: 1;
+    }
+    
+    .video-modal-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+    }
+    
+    .video-modal-content {
+      position: relative;
+      width: 90%;
+      max-width: 900px;
+      max-height: 90vh;
+      background: #000;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      transform: scale(0.9);
+      transition: transform 0.3s ease;
+      z-index: 1;
+    }
+    
+    .video-modal.active .video-modal-content {
+      transform: scale(1);
+    }
+    
+    .video-modal-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(8px);
+      border: none;
+      cursor: pointer;
+      padding: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+      z-index: 10;
+      width: 40px;
+      height: 40px;
+    }
+    
+    .video-modal-close:hover {
+      background: rgba(0, 0, 0, 0.8);
+      transform: scale(1.05);
+    }
+    
+    .video-modal-body {
+      position: relative;
+      padding-bottom: 56.25%; /* 16:9 aspect ratio */
+      height: 0;
+      overflow: hidden;
+    }
+    
+    .video-modal-body iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    
+    @media (max-width: 640px) {
+      .video-modal-content {
+        width: 95%;
+        border-radius: 12px;
+      }
+      
+      .video-modal-close {
+        top: 12px;
+        right: 12px;
+        width: 36px;
+        height: 36px;
+        padding: 8px;
+      }
+      
+      .video-modal-close svg {
+        width: 20px;
+        height: 20px;
+      }
+    }
+    
+    /* Waitlist Modal Styles */
+    .waitlist-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 10000;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+    
+    .waitlist-modal.active {
+      display: flex;
+      opacity: 1;
+    }
+    
+    .waitlist-modal-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(8px);
+    }
+    
+    .waitlist-modal-content {
+      position: relative;
+      width: 90%;
+      max-width: 480px;
+      background: white;
+      border-radius: 24px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+      transform: scale(0.95) translateY(10px);
+      transition: transform 0.2s ease;
+      z-index: 1;
+      padding: 32px;
+    }
+    
+    .waitlist-modal.active .waitlist-modal-content {
+      transform: scale(1) translateY(0);
+    }
+    
+    .waitlist-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+    
+    .waitlist-modal-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: #181925;
+      font-family: "Open Runde", Inter, system-ui, sans-serif;
+      line-height: 32px;
+      letter-spacing: -0.64px;
+      margin: 0;
+    }
+    
+    .waitlist-modal-close {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      padding: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      transition: background-color 0.2s;
+      color: #666;
+      flex-shrink: 0;
+      margin-left: 16px;
+      width: 32px;
+      height: 32px;
+    }
+    
+    .waitlist-modal-close:hover {
+      background-color: #F7F7F7;
+    }
+    
+    .waitlist-modal-description {
+      font-size: 16px;
+      color: #777;
+      font-family: "Open Runde", Inter, system-ui, sans-serif;
+      line-height: 24px;
+      letter-spacing: -0.32px;
+      margin-bottom: 16px;
+    }
+    
+    .waitlist-modal-form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    
+    .waitlist-modal-form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      justify-content: center;
+      align-items: flex-start;
+    }
+    
+    @media (min-width: 640px) {
+      .waitlist-modal-form-group {
+        flex-direction: row;
+      }
+    }
+    
+    .waitlist-modal-input-wrapper {
+      position: relative;
+      flex: 1;
+    }
+    
+    .waitlist-modal-input-wrapper.input-group:focus-within svg path {
+      fill: #00B5E9;
+    }
+    
+    .waitlist-modal-input {
+      width: 100%;
+      padding: 11px 16px 11px 38px;
+      border-radius: 999px;
+      border: none;
+      background: white;
+      box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.05);
+      font-size: 14px;
+      color: #181925;
+      font-family: "Open Runde", Inter, system-ui, sans-serif;
+      font-weight: normal;
+      line-height: 18px;
+      letter-spacing: -0.32px;
+      text-align: left;
+      transition: all 0.2s;
+    }
+    
+    .waitlist-modal-input:focus {
+      outline: none;
+      box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.05), 0 0 0 2px rgba(0, 181, 233, 0.2);
+    }
+    
+    .waitlist-modal-input::placeholder {
+      color: #CCC;
+      font-size: 14px;
+      font-weight: normal;
+      line-height: 18px;
+      letter-spacing: -0.32px;
+    }
+    
+    .waitlist-modal-input-icon {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+      width: 14px;
+      height: 14px;
+      transition: fill 0.2s;
+    }
+    
+    .waitlist-modal-submit {
+      padding: 11px 24px;
+      border-radius: 999px;
+      border: none;
+      background: #00B5E9;
+      color: white;
+      font-size: 14px;
+      font-weight: 500;
+      font-family: "Open Runde", Inter, system-ui, sans-serif;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.05);
+      white-space: nowrap;
+    }
+    
+    .waitlist-modal-submit:hover {
+      background: #0099CC;
+    }
+    
+    .waitlist-modal-submit:active {
+      transform: scale(0.98);
+    }
+    
+    .waitlist-modal-footer {
+      margin-top: 12px;
+      text-align: center;
+      font-size: 14px;
+      color: #979797;
+      font-family: "Open Runde", Inter, system-ui, sans-serif;
+    }
+    
+    /* Get Ahead Section Styles */
+    #hero-get-ahead,
+    #modal-get-ahead {
+      animation: fadeIn 0.3s ease-in;
+    }
+    
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    @media (max-width: 640px) {
+      .waitlist-modal-content {
+        width: 95%;
+        padding: 16px;
+        border-radius: 16px;
+      }
+      
+      .waitlist-modal-title {
+        font-size: 20px;
+        line-height: 28px;
+      }
+      
+      .waitlist-modal-description {
+        font-size: 14px;
+        margin-bottom: 24px;
+      }
+    }
+    
+    /* Toast Styles - Sonner Default Design */
+    .toast-container {
+      position: fixed;
+      bottom: 16px;
+      right: 16px;
+      z-index: 10001;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+      max-width: 420px;
+    }
+    
+    .toast {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      min-width: 356px;
+      max-width: 420px;
+      padding: 16px;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      pointer-events: auto;
+      transform: translateX(calc(100% + 16px));
+      opacity: 0;
+      transition: all 0.35s cubic-bezier(0.21, 1.02, 0.73, 1);
+      font-family: "Open Runde", Inter, system-ui, sans-serif;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .toast.show {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    
+    .toast-icon-wrapper {
+      flex-shrink: 0;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 2px;
+    }
+    
+    .toast-icon {
+      width: 20px;
+      height: 20px;
+      stroke-width: 2;
+    }
+    
+    .toast-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 0;
+    }
+    
+    .toast-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: #181925;
+      line-height: 1.4;
+      margin: 0;
+      font-family: "Open Runde", Inter, system-ui, sans-serif;
+    }
+    
+    .toast-description {
+      font-size: 13px;
+      color: #777;
+      line-height: 1.4;
+      margin: 0;
+      font-family: "Open Runde", Inter, system-ui, sans-serif;
+    }
+    
+    .toast-close {
+      flex-shrink: 0;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      color: #979797;
+      transition: all 0.15s;
+      width: 20px;
+      height: 20px;
+      margin-top: 2px;
+      opacity: 0.7;
+    }
+    
+    .toast-close:hover {
+      opacity: 1;
+      background: #F7F7F7;
+    }
+    
+    .toast-close svg {
+      width: 14px;
+      height: 14px;
+    }
+    
+    /* Toast Types - Project Colors */
+    .toast.success .toast-icon {
+      color: #5DDC6D;
+    }
+    
+    .toast.error .toast-icon {
+      color: #FF4D5E;
+    }
+    
+    .toast.info .toast-icon {
+      color: #00B5E9;
+    }
+    
+    .toast.warning .toast-icon {
+      color: #979797;
+    }
+    
+    /* Sonner-style progress bar */
+    .toast::before {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      height: 2px;
+      background: rgba(0, 0, 0, 0.05);
+      width: 100%;
+      transform-origin: left;
+      animation: toast-progress 5s linear forwards;
+    }
+    
+    .toast:hover::before {
+      animation-play-state: paused;
+    }
+    
+    @keyframes toast-progress {
+      from {
+        transform: scaleX(1);
+      }
+      to {
+        transform: scaleX(0);
+      }
+    }
+    
+    @media (max-width: 640px) {
+      .toast-container {
+        bottom: 0;
+        right: 0;
+        left: 0;
+        max-width: 100%;
+        padding: 16px;
+      }
+      
+      .toast {
+        min-width: auto;
+        max-width: 100%;
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+        border-top: 1px solid rgba(0, 0, 0, 0.05);
+        transform: translateY(100%);
+      }
+      
+      .toast.show {
+        transform: translateY(0);
+      }
+    }
+    
+    /* Version History Animation - Enhanced & Soft */
+    .version-history-animation {
+      position: relative;
+    }
+    
+    .version-history-animation svg {
+      width: 100%;
+      height: 100%;
+    }
+    
+    /* Timeline draw animation - smoother */
+    @keyframes drawTimeline {
+      from {
+        stroke-dashoffset: 340;
+        opacity: 0;
+      }
+      to {
+        stroke-dashoffset: 0;
+        opacity: 1;
+      }
+    }
+    
+    .timeline {
+      stroke-dasharray: 340;
+      stroke-dashoffset: 340;
+      animation: drawTimeline 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+    
+    /* Version nodes appear - enhanced */
+    @keyframes nodeAppear {
+      from {
+        opacity: 0;
+        transform: scale(0.7) translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+    
+    .version-node {
+      opacity: 0;
+      animation: nodeAppear 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+    
+    .version-node[data-version="1"] {
+      animation-delay: 0.4s;
+    }
+    
+    .version-node[data-version="2"] {
+      animation-delay: 0.7s;
+    }
+    
+    .version-node[data-version="3"] {
+      animation-delay: 1.0s;
+    }
+    
+    .version-node[data-version="4"] {
+      animation-delay: 1.3s;
+    }
+    
+    /* Spec cards appear */
+    @keyframes cardAppear {
+      from {
+        opacity: 0;
+        transform: translateX(-15px);
+      }
+      to {
+        opacity: 0.9;
+        transform: translateX(0);
+      }
+    }
+    
+    .spec-card {
+      opacity: 0;
+      animation: cardAppear 0.5s ease-out forwards;
+    }
+    
+    .version-node[data-version="1"] .spec-card {
+      animation-delay: 0.6s;
+    }
+    
+    .version-node[data-version="2"] .spec-card {
+      animation-delay: 0.9s;
+    }
+    
+    .version-node[data-version="3"] .spec-card {
+      animation-delay: 1.2s;
+    }
+    
+    .version-node[data-version="4"] .spec-card {
+      animation-delay: 1.5s;
+    }
+    
+    /* Connection lines appear - smoother */
+    @keyframes lineAppear {
+      from {
+        opacity: 0;
+        stroke-dashoffset: 80;
+      }
+      to {
+        opacity: 0.25;
+        stroke-dashoffset: 0;
+      }
+    }
+    
+    .connection-line {
+      stroke-dasharray: 80;
+      stroke-dashoffset: 80;
+      animation: lineAppear 1s ease-out forwards;
+    }
+    
+    .version-node[data-version="2"] .connection-line {
+      animation-delay: 1.0s;
+    }
+    
+    .version-node[data-version="3"] .connection-line {
+      animation-delay: 1.3s;
+    }
+    
+    .version-node[data-version="4"] .connection-line {
+      animation-delay: 1.6s;
+    }
+    
+    /* Active node pulse - enhanced */
+    @keyframes activePulse {
+      0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+      50% {
+        transform: scale(1.15);
+        opacity: 0.9;
+      }
+    }
+    
+    @keyframes activeDotPulse {
+      0%, 100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.2);
+      }
+    }
+    
+    .active-circle {
+      animation: activePulse 2.5s ease-in-out infinite;
+      animation-delay: 1.8s;
+    }
+    
+    .active-dot {
+      animation: activeDotPulse 2.5s ease-in-out infinite;
+      animation-delay: 1.8s;
+    }
+    
+    /* Chat logs fade away - enhanced */
+    @keyframes fadeAway {
+      0% {
+        opacity: 0.6;
+        transform: translateY(0) scale(1) translateX(0);
+      }
+      50% {
+        opacity: 0.3;
+        transform: translateY(-10px) scale(0.95) translateX(5px);
+      }
+      100% {
+        opacity: 0;
+        transform: translateY(-25px) scale(0.7) translateX(10px);
+      }
+    }
+    
+    .chat-fading {
+      animation: fadeAway 4s ease-out infinite;
+    }
+    
+    .chat-fading:nth-of-type(1) {
+      animation-delay: 2.2s;
+    }
+    
+    .chat-fading:nth-of-type(2) {
+      animation-delay: 2.7s;
+    }
+    
+    .chat-fading:nth-of-type(3) {
+      animation-delay: 3.2s;
+    }
+    
+    /* Oral history fade away - enhanced */
+    @keyframes waveFade {
+      0% {
+        opacity: 0.5;
+        transform: translateX(0);
+      }
+      50% {
+        opacity: 0.2;
+        transform: translateX(5px);
+      }
+      100% {
+        opacity: 0;
+        transform: translateX(10px);
+      }
+    }
+    
+    .oral-fading {
+      animation: waveFade 4s ease-out infinite;
+    }
+    
+    .oral-fading:nth-of-type(1) {
+      animation-delay: 3.5s;
+    }
+    
+    .oral-fading:nth-of-type(2) {
+      animation-delay: 4s;
+    }
+    
+    /* Subtle floating for spec cards - enhanced */
+    @keyframes float {
+      0%, 100% {
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(-3px);
+      }
+    }
+    
+    .spec-card {
+      animation: float 4s ease-in-out infinite;
+    }
+    
+    .version-node[data-version="1"] .spec-card {
+      animation-delay: 2s;
+    }
+    
+    .version-node[data-version="2"] .spec-card {
+      animation-delay: 2.2s;
+    }
+    
+    .version-node[data-version="3"] .spec-card {
+      animation-delay: 2.4s;
+    }
+    
+    .version-node[data-version="4"] .spec-card {
+      animation-delay: 2.6s;
+    }
+    
+    /* Node dots subtle pulse */
+    @keyframes dotPulse {
+      0%, 100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.7;
+      }
+    }
+    
+    .node-dot {
+      animation: dotPulse 3s ease-in-out infinite;
+    }
+    
+    .version-node[data-version="1"] .node-dot {
+      animation-delay: 1.8s;
+    }
+    
+    .version-node[data-version="2"] .node-dot {
+      animation-delay: 2s;
+    }
+    
+    .version-node[data-version="3"] .node-dot {
+      animation-delay: 2.2s;
+    }
+    
+    .version-node[data-version="4"] .node-dot {
+      animation-delay: 2.4s;
+    }
+    
+    /* Quality Gates Animation - Linear Minimal (Modern) */
+    .quality-gates-animation {
+      position: relative;
+    }
+    
+    .quality-gates-animation .qg-variant {
+      width: 100%;
+      height: 100%;
+    }
+
+    .quality-gates-animation[data-qg-variant="b"] .qg-a { display: none; }
+    .quality-gates-animation[data-qg-variant="a"] .qg-b { display: none; }
+    
+    /* Flow line */
+    @keyframes flowLineDraw {
+      from {
+        stroke-dashoffset: 240;
+        opacity: 0;
+      }
+      to {
+        stroke-dashoffset: 0;
+        opacity: 1;
+      }
+    }
+    
+    .quality-gates-animation[data-qg-variant="a"] .flow-line {
+      stroke-dasharray: 240;
+      stroke-dashoffset: 240;
+      animation: flowLineDraw 1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+    
+    /* Looping, minimal sequence (Linear-ish) */
+    @keyframes gateCycle {
+      0%, 10% { opacity: 0; transform: translateY(2px); }
+      16%, 100% { opacity: 1; transform: translateY(0); }
+    }
+    .quality-gates-animation[data-qg-variant="a"] .quality-gate {
+      opacity: 0;
+      animation: gateCycle 5.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+
+    @keyframes specCycle {
+      0% { opacity: 0; transform: translateX(-18px); }
+      12% { opacity: 1; transform: translateX(0); }
+      42% { opacity: 1; transform: translateX(112px); }
+      55% { opacity: 0; transform: translateX(124px); }
+      100% { opacity: 0; transform: translateX(124px); }
+    }
+    .quality-gates-animation[data-qg-variant="a"] .spec-entering {
+      opacity: 0;
+      animation: specCycle 5.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+
+    @keyframes checkCycle {
+      0%, 20% { opacity: 0; stroke-dashoffset: 18; }
+      32% { opacity: 1; stroke-dashoffset: 0; }
+      100% { opacity: 1; stroke-dashoffset: 0; }
+    }
+    .quality-gates-animation[data-qg-variant="a"] .check-icon {
+      stroke-dasharray: 18;
+      stroke-dashoffset: 18;
+      opacity: 0;
+      animation: checkCycle 5.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+
+    @keyframes validatedCycle {
+      0%, 28% { opacity: 0; transform: translateX(10px); }
+      40% { opacity: 1; transform: translateX(0); }
+      100% { opacity: 1; transform: translateX(0); }
+    }
+    .quality-gates-animation[data-qg-variant="a"] .validated-spec {
+      opacity: 0;
+      animation: validatedCycle 5.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+
+    @keyframes codeCycle {
+      0%, 36% { opacity: 0; transform: translateY(10px); }
+      48% { opacity: 1; transform: translateY(0); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+    .quality-gates-animation[data-qg-variant="a"] .code-output {
+      opacity: 0;
+      animation: codeCycle 5.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+
+    @keyframes arrowCycle {
+      0%, 18% { opacity: 0; stroke-dashoffset: 40; }
+      30% { opacity: 0.45; stroke-dashoffset: 0; }
+      100% { opacity: 0.45; stroke-dashoffset: 0; }
+    }
+    .quality-gates-animation[data-qg-variant="a"] .arrow-1,
+    .quality-gates-animation[data-qg-variant="a"] .arrow-2 {
+      stroke-dasharray: 40;
+      stroke-dashoffset: 40;
+      animation: arrowCycle 5.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+    .quality-gates-animation[data-qg-variant="a"] .arrow-2 { animation-delay: 0.12s; }
+
+    @keyframes arrowCycleShort {
+      0%, 32% { opacity: 0; stroke-dashoffset: 28; }
+      44% { opacity: 0.45; stroke-dashoffset: 0; }
+      100% { opacity: 0.45; stroke-dashoffset: 0; }
+    }
+    .quality-gates-animation[data-qg-variant="a"] .arrow-3 {
+      stroke-dasharray: 28;
+      stroke-dashoffset: 28;
+      animation: arrowCycleShort 5.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+
+    /* Variant B: different (more Linear-minimal) concept */
+    .quality-gates-animation[data-qg-variant="b"] .qg2-flow {
+      stroke-dasharray: 240;
+      stroke-dashoffset: 240;
+      animation: qg2Flow 4.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+
+    @keyframes qg2Flow {
+      0% { stroke-dashoffset: 240; opacity: 0; }
+      16% { stroke-dashoffset: 0; opacity: 1; }
+      100% { stroke-dashoffset: 0; opacity: 1; }
+    }
+
+    .quality-gates-animation[data-qg-variant="b"] .qg2-spec {
+      opacity: 0;
+      animation: qg2Spec 4.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+
+    @keyframes qg2Spec {
+      0% { opacity: 0; transform: translateX(-18px); }
+      12% { opacity: 1; transform: translateX(0); }
+      55% { opacity: 1; transform: translateX(172px); }
+      68% { opacity: 0; transform: translateX(190px); }
+      100% { opacity: 0; transform: translateX(190px); }
+    }
+
+    .quality-gates-animation[data-qg-variant="b"] .qg2-gate {
+      animation: qg2Gate 4.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+
+    @keyframes qg2Gate {
+      0%, 100% { stroke: #E5E5E5; fill: #FFFFFF; }
+      50% { stroke: #E5E5E5; fill: #FFFFFF; }
+    }
+
+    @keyframes qg2GatePulse {
+      0%, 100% { stroke: #E5E5E5; fill: #FFFFFF; }
+      40% { stroke: #00B5E9; fill: rgba(0,181,233,0.08); }
+      65% { stroke: #E5E5E5; fill: #FFFFFF; }
+    }
+
+    .quality-gates-animation[data-qg-variant="b"] .qg2-g1 { animation: qg2GatePulse 4.8s cubic-bezier(0.4, 0, 0.2, 1) infinite; animation-delay: 0.35s; }
+    .quality-gates-animation[data-qg-variant="b"] .qg2-g2 { animation: qg2GatePulse 4.8s cubic-bezier(0.4, 0, 0.2, 1) infinite; animation-delay: 0.75s; }
+    .quality-gates-animation[data-qg-variant="b"] .qg2-g3 { animation: qg2GatePulse 4.8s cubic-bezier(0.4, 0, 0.2, 1) infinite; animation-delay: 1.15s; }
+
+    .quality-gates-animation[data-qg-variant="b"] .qg2-drop {
+      stroke-dasharray: 40;
+      stroke-dashoffset: 40;
+      opacity: 0;
+      animation: qg2Drop 4.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+
+    @keyframes qg2Drop {
+      0%, 58% { stroke-dashoffset: 40; opacity: 0; }
+      72% { stroke-dashoffset: 0; opacity: 1; }
+      100% { stroke-dashoffset: 0; opacity: 1; }
+    }
+
+    .quality-gates-animation[data-qg-variant="b"] .qg2-code {
+      opacity: 0;
+      transform: translateY(10px);
+      animation: qg2Code 4.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+
+    @keyframes qg2Code {
+      0%, 62% { opacity: 0; transform: translateY(10px); }
+      78% { opacity: 1; transform: translateY(0); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Retroactive Spec Animation - Linear Style (Variants) */
+    .retroactive-spec-animation {
+      position: relative;
+    }
+    
+    .retroactive-spec-animation .retro-variant {
+      width: 100%;
+      height: 100%;
+    }
+
+    .retroactive-spec-animation[data-retro-variant="b"] .retro-a,
+    .retroactive-spec-animation[data-retro-variant="b"] .retro-c { display: none; }
+    .retroactive-spec-animation[data-retro-variant="a"] .retro-b,
+    .retroactive-spec-animation[data-retro-variant="a"] .retro-c { display: none; }
+    .retroactive-spec-animation[data-retro-variant="c"] .retro-a,
+    .retroactive-spec-animation[data-retro-variant="c"] .retro-b { display: none; }
+    .retroactive-spec-animation[data-retro-variant="d"] .retro-a,
+    .retroactive-spec-animation[data-retro-variant="d"] .retro-b,
+    .retroactive-spec-animation[data-retro-variant="d"] .retro-c { display: none; }
+    .retroactive-spec-animation[data-retro-variant="e"] .retro-a,
+    .retroactive-spec-animation[data-retro-variant="e"] .retro-b,
+    .retroactive-spec-animation[data-retro-variant="e"] .retro-c,
+    .retroactive-spec-animation[data-retro-variant="e"] .retro-d { display: none; }
+    .retroactive-spec-animation[data-retro-variant="f"] .retro-a,
+    .retroactive-spec-animation[data-retro-variant="f"] .retro-b,
+    .retroactive-spec-animation[data-retro-variant="f"] .retro-c,
+    .retroactive-spec-animation[data-retro-variant="f"] .retro-d,
+    .retroactive-spec-animation[data-retro-variant="f"] .retro-e { display: none; }
+    .retroactive-spec-animation[data-retro-variant="g"] .retro-a,
+    .retroactive-spec-animation[data-retro-variant="g"] .retro-b,
+    .retroactive-spec-animation[data-retro-variant="g"] .retro-c,
+    .retroactive-spec-animation[data-retro-variant="g"] .retro-d,
+    .retroactive-spec-animation[data-retro-variant="g"] .retro-e,
+    .retroactive-spec-animation[data-retro-variant="g"] .retro-f { display: none; }
+    .retroactive-spec-animation[data-retro-variant="h"] .retro-a,
+    .retroactive-spec-animation[data-retro-variant="h"] .retro-b,
+    .retroactive-spec-animation[data-retro-variant="h"] .retro-c,
+    .retroactive-spec-animation[data-retro-variant="h"] .retro-d,
+    .retroactive-spec-animation[data-retro-variant="h"] .retro-e,
+    .retroactive-spec-animation[data-retro-variant="h"] .retro-f,
+    .retroactive-spec-animation[data-retro-variant="h"] .retro-g { display: none; }
+    .retroactive-spec-animation[data-retro-variant="i"] .retro-a,
+    .retroactive-spec-animation[data-retro-variant="i"] .retro-b,
+    .retroactive-spec-animation[data-retro-variant="i"] .retro-c,
+    .retroactive-spec-animation[data-retro-variant="i"] .retro-d,
+    .retroactive-spec-animation[data-retro-variant="i"] .retro-e,
+    .retroactive-spec-animation[data-retro-variant="i"] .retro-f,
+    .retroactive-spec-animation[data-retro-variant="i"] .retro-g,
+    .retroactive-spec-animation[data-retro-variant="i"] .retro-h { display: none; }
+    .retroactive-spec-animation[data-retro-variant="j"] .retro-a,
+    .retroactive-spec-animation[data-retro-variant="j"] .retro-b,
+    .retroactive-spec-animation[data-retro-variant="j"] .retro-c,
+    .retroactive-spec-animation[data-retro-variant="j"] .retro-d,
+    .retroactive-spec-animation[data-retro-variant="j"] .retro-e,
+    .retroactive-spec-animation[data-retro-variant="j"] .retro-f,
+    .retroactive-spec-animation[data-retro-variant="j"] .retro-g,
+    .retroactive-spec-animation[data-retro-variant="j"] .retro-h,
+    .retroactive-spec-animation[data-retro-variant="j"] .retro-i { display: none; }
+    .retroactive-spec-animation[data-retro-variant="k"] .retro-a,
+    .retroactive-spec-animation[data-retro-variant="k"] .retro-b,
+    .retroactive-spec-animation[data-retro-variant="k"] .retro-c,
+    .retroactive-spec-animation[data-retro-variant="k"] .retro-d,
+    .retroactive-spec-animation[data-retro-variant="k"] .retro-e,
+    .retroactive-spec-animation[data-retro-variant="k"] .retro-f,
+    .retroactive-spec-animation[data-retro-variant="k"] .retro-g,
+    .retroactive-spec-animation[data-retro-variant="k"] .retro-h,
+    .retroactive-spec-animation[data-retro-variant="k"] .retro-i,
+    .retroactive-spec-animation[data-retro-variant="k"] .retro-j { display: none; }
+    
+    /* Timeline - Linear style */
+    @keyframes timelineDraw {
+      from {
+        stroke-dashoffset: 240;
+        opacity: 0;
+      }
+      to {
+        stroke-dashoffset: 0;
+        opacity: 1;
+      }
+    }
+    
+    .retroactive-spec-animation[data-retro-variant="a"] .timeline {
+      stroke-dasharray: 240;
+      stroke-dashoffset: 240;
+      animation: timelineDraw 1s ease-out forwards;
+    }
+    
+    /* Hot fix code appear - Linear style */
+    @keyframes hotfixAppear {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .retroactive-spec-animation[data-retro-variant="a"] .hotfix-code {
+      opacity: 0;
+      animation: hotfixAppear 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+      animation-delay: 0.4s;
+    }
+    
+    /* Retroactive flow path - Linear style */
+    @keyframes retroPathDraw {
+      from {
+        stroke-dashoffset: 110;
+        opacity: 0;
+      }
+      to {
+        stroke-dashoffset: 0;
+        opacity: 0.3;
+      }
+    }
+    
+    .retroactive-spec-animation[data-retro-variant="a"] .retro-path {
+      stroke-dasharray: 110;
+      stroke-dashoffset: 110;
+      animation: retroPathDraw 1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+      animation-delay: 1s;
+    }
+    
+    .retroactive-spec-animation[data-retro-variant="a"] .retro-arrow {
+      opacity: 0;
+      animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+      animation-delay: 1.7s;
+    }
+    
+    @keyframes fadeIn {
+      to { opacity: 0.3; }
+    }
+    
+    /* Retroactive spec appear - Linear style */
+    @keyframes retroSpecAppear {
+      from {
+        opacity: 0;
+        transform: translateX(25px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+    
+    .retroactive-spec-animation[data-retro-variant="a"] .retroactive-spec {
+      opacity: 0;
+      animation: retroSpecAppear 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+      animation-delay: 1.4s;
+    }
+    
+    /* Clock subtle tick - Linear style */
+    @keyframes clockTick {
+      0%, 100% {
+        transform: rotate(0deg);
+      }
+      50% {
+        transform: rotate(2deg);
+      }
+    }
+    
+    .retroactive-spec-animation[data-retro-variant="a"] .retroactive-spec circle[stroke="#00B5E9"] {
+      animation: clockTick 3s ease-in-out infinite;
+      animation-delay: 2s;
+      transform-origin: 340px 272px;
+    }
+    
+    /* Subtle hover effect - Linear style */
+    @keyframes cardSubtle {
+      0%, 100% {
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(-1px);
+      }
+    }
+    
+    .retroactive-spec-animation[data-retro-variant="a"] .spec-retro {
+      animation: cardSubtle 4s ease-in-out infinite;
+      animation-delay: 2.5s;
+    }
+    
+    @keyframes codeSubtle {
+      0%, 100% {
+        opacity: 0.95;
+      }
+      50% {
+        opacity: 1;
+      }
+    }
+    
+    .retroactive-spec-animation[data-retro-variant="a"] .code-hotfix {
+      animation: codeSubtle 3s ease-in-out infinite;
+      animation-delay: 2.3s;
+    }
+
+    /* Variant B: changed-mind concept (Linear-minimal) */
+    .retroactive-spec-animation[data-retro-variant="b"] .retro2-track {
+      stroke-dasharray: 230;
+      stroke-dashoffset: 230;
+      animation: retro2Track 4.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+
+    @keyframes retro2Track {
+      0% { stroke-dashoffset: 230; opacity: 0; }
+      18% { stroke-dashoffset: 0; opacity: 1; }
+      100% { stroke-dashoffset: 0; opacity: 1; }
+    }
+
+    .retroactive-spec-animation[data-retro-variant="b"] .retro2-code {
+      opacity: 0;
+      transform: translateY(10px);
+      animation: retro2Code 4.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+
+    @keyframes retro2Code {
+      0% { opacity: 0; transform: translateY(10px); }
+      18% { opacity: 1; transform: translateY(0); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    .retroactive-spec-animation[data-retro-variant="b"] .retro2-backpath {
+      stroke-dasharray: 120;
+      stroke-dashoffset: 120;
+      opacity: 0;
+      animation: retro2Backpath 4.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+
+    @keyframes retro2Backpath {
+      0%, 28% { stroke-dashoffset: 120; opacity: 0; }
+      52% { stroke-dashoffset: 0; opacity: 0.6; }
+      100% { stroke-dashoffset: 0; opacity: 0.6; }
+    }
+
+    .retroactive-spec-animation[data-retro-variant="b"] .retro2-doc {
+      opacity: 0;
+      transform: translateX(-10px);
+      animation: retro2Doc 4.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+
+    @keyframes retro2Doc {
+      0%, 40% { opacity: 0; transform: translateX(-10px); }
+      60% { opacity: 1; transform: translateX(0); }
+      100% { opacity: 1; transform: translateX(0); }
+    }
+
+    .retroactive-spec-animation[data-retro-variant="b"] .retro2-stamp {
+      opacity: 0;
+      animation: retro2Stamp 4.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+
+    @keyframes retro2Stamp {
+      0%, 58% { opacity: 0; transform: scale(0.98); }
+      72% { opacity: 0.8; transform: scale(1); }
+      100% { opacity: 0.8; transform: scale(1); }
+    }
+
+    /* Variant C: improved (Linear-minimal, calmer + clearer timing) */
+    .retroactive-spec-animation[data-retro-variant="c"] .retro3-now {
+      opacity: 0;
+      transform: translateY(10px);
+      animation: retro3Now 4.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+
+    @keyframes retro3Now {
+      0% { opacity: 0; transform: translateY(10px); }
+      14% { opacity: 1; transform: translateY(0); }
+      86% { opacity: 1; transform: translateY(0); }
+      100% { opacity: 0; transform: translateY(6px); }
+    }
+
+    .retroactive-spec-animation[data-retro-variant="c"] .retro3-dots circle {
+      opacity: 0;
+      animation: retro3Dot 4.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+    .retroactive-spec-animation[data-retro-variant="c"] .retro3-dots .d2 { animation-delay: 0.12s; }
+    .retroactive-spec-animation[data-retro-variant="c"] .retro3-dots .d3 { animation-delay: 0.24s; }
+
+    @keyframes retro3Dot {
+      0%, 20% { opacity: 0; }
+      30% { opacity: 0.45; }
+      46% { opacity: 0.16; }
+      100% { opacity: 0.16; }
+    }
+
+    .retroactive-spec-animation[data-retro-variant="c"] .retro3-back {
+      stroke-dasharray: 130;
+      stroke-dashoffset: 130;
+      opacity: 0;
+      animation: retro3Back 4.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+
+    @keyframes retro3Back {
+      0%, 34% { stroke-dashoffset: 130; opacity: 0; }
+      58% { stroke-dashoffset: 0; opacity: 0.55; }
+      100% { stroke-dashoffset: 0; opacity: 0.55; }
+    }
+
+    .retroactive-spec-animation[data-retro-variant="c"] .retro3-spec {
+      opacity: 0;
+      transform: translateX(-10px);
+      animation: retro3Spec 4.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+
+    @keyframes retro3Spec {
+      0%, 44% { opacity: 0; transform: translateX(-10px); }
+      64% { opacity: 1; transform: translateX(0); }
+      100% { opacity: 1; transform: translateX(0); }
+    }
+
+    .retroactive-spec-animation[data-retro-variant="c"] .retro3-stamp {
+      opacity: 0;
+      transform-origin: center;
+      animation: retro3Stamp 4.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+
+    @keyframes retro3Stamp {
+      0%, 60% { opacity: 0; transform: scale(0.98); }
+      72% { opacity: 0.8; transform: scale(1); }
+      100% { opacity: 0.8; transform: scale(1); }
+    }
+
+    /* Variant D: from-scratch Linear-minimal */
+    .retroactive-spec-animation[data-retro-variant="d"] .retro4-track {
+      stroke-dasharray: 220;
+      stroke-dashoffset: 220;
+      animation: retro4Track 4.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+
+    @keyframes retro4Track {
+      0% { stroke-dashoffset: 220; opacity: 0; }
+      18% { stroke-dashoffset: 0; opacity: 1; }
+      100% { stroke-dashoffset: 0; opacity: 1; }
+    }
+
+    .retroactive-spec-animation[data-retro-variant="d"] .retro4-now {
+      opacity: 0;
+      transform: translateY(10px);
+      animation: retro4Now 4.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+
+    @keyframes retro4Now {
+      0% { opacity: 0; transform: translateY(10px); }
+      16% { opacity: 1; transform: translateY(0); }
+      84% { opacity: 1; transform: translateY(0); }
+      100% { opacity: 0; transform: translateY(6px); }
+    }
+
+    .retroactive-spec-animation[data-retro-variant="d"] .retro4-back {
+      stroke-dasharray: 110;
+      stroke-dashoffset: 110;
+      opacity: 0;
+      animation: retro4Back 4.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+
+    @keyframes retro4Back {
+      0%, 34% { stroke-dashoffset: 110; opacity: 0; }
+      58% { stroke-dashoffset: 0; opacity: 0.6; }
+      100% { stroke-dashoffset: 0; opacity: 0.6; }
+    }
+
+    .retroactive-spec-animation[data-retro-variant="d"] .retro4-doc {
+      opacity: 0;
+      transform: translateX(-10px);
+      animation: retro4Doc 4.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+
+    @keyframes retro4Doc {
+      0%, 46% { opacity: 0; transform: translateX(-10px); }
+      66% { opacity: 1; transform: translateX(0); }
+      100% { opacity: 1; transform: translateX(0); }
+    }
+
+    .retroactive-spec-animation[data-retro-variant="d"] .retro4-stamp {
+      opacity: 0;
+      transform-origin: center;
+      animation: retro4Stamp 4.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+
+    @keyframes retro4Stamp {
+      0%, 62% { opacity: 0; transform: scale(0.98); }
+      74% { opacity: 0.85; transform: scale(1); }
+      100% { opacity: 0.85; transform: scale(1); }
+    }
+
+    /* Variant E: hybrid of A + B (timeline + linear chips) */
+    .retroactive-spec-animation[data-retro-variant="e"] .retro5-timeline {
+      stroke-dasharray: 220;
+      stroke-dashoffset: 220;
+      opacity: 0;
+      animation: retro5Timeline 5.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+
+    @keyframes retro5Timeline {
+      0% { stroke-dashoffset: 220; opacity: 0; }
+      16% { stroke-dashoffset: 0; opacity: 0.35; }
+      100% { stroke-dashoffset: 0; opacity: 0.35; }
+    }
+
+    .retroactive-spec-animation[data-retro-variant="e"] .retro5-now {
+      opacity: 0;
+      transform: translateY(10px);
+      animation: retro5Now 5.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+
+    @keyframes retro5Now {
+      0% { opacity: 0; transform: translateY(10px); }
+      16% { opacity: 1; transform: translateY(0); }
+      84% { opacity: 1; transform: translateY(0); }
+      100% { opacity: 0; transform: translateY(6px); }
+    }
+
+    .retroactive-spec-animation[data-retro-variant="e"] .retro5-back {
+      stroke-dasharray: 120;
+      stroke-dashoffset: 120;
+      opacity: 0;
+      animation: retro5Back 5.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+
+    @keyframes retro5Back {
+      0%, 32% { stroke-dashoffset: 120; opacity: 0; }
+      56% { stroke-dashoffset: 0; opacity: 0.6; }
+      100% { stroke-dashoffset: 0; opacity: 0.6; }
+    }
+
+    .retroactive-spec-animation[data-retro-variant="e"] .retro5-doc {
+      opacity: 0;
+      transform: translateX(-10px);
+      animation: retro5Doc 5.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+
+    @keyframes retro5Doc {
+      0%, 42% { opacity: 0; transform: translateX(-10px); }
+      64% { opacity: 1; transform: translateX(0); }
+      100% { opacity: 1; transform: translateX(0); }
+    }
+
+    .retroactive-spec-animation[data-retro-variant="e"] .retro5-stamp {
+      opacity: 0;
+      transform-origin: center;
+      animation: retro5Stamp 5.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+
+    @keyframes retro5Stamp {
+      0%, 62% { opacity: 0; transform: scale(0.98); }
+      74% { opacity: 0.85; transform: scale(1); }
+      100% { opacity: 0.85; transform: scale(1); }
+    }
+
+    /* Variant F: re-made, pure Linear-minimal */
+    .retroactive-spec-animation[data-retro-variant="f"] .retro6-now {
+      opacity: 0;
+      transform: translateY(10px);
+      animation: retro6Now 4.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+    @keyframes retro6Now {
+      0% { opacity: 0; transform: translateY(10px); }
+      16% { opacity: 1; transform: translateY(0); }
+      84% { opacity: 1; transform: translateY(0); }
+      100% { opacity: 0; transform: translateY(6px); }
+    }
+
+    .retroactive-spec-animation[data-retro-variant="f"] .retro6-back {
+      stroke-dasharray: 120;
+      stroke-dashoffset: 120;
+      opacity: 0;
+      animation: retro6Back 4.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+    @keyframes retro6Back {
+      0%, 30% { stroke-dashoffset: 120; opacity: 0; }
+      56% { stroke-dashoffset: 0; opacity: 0.6; }
+      100% { stroke-dashoffset: 0; opacity: 0.6; }
+    }
+
+    .retroactive-spec-animation[data-retro-variant="f"] .retro6-doc {
+      opacity: 0;
+      transform: translateX(-10px);
+      animation: retro6Doc 4.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+    @keyframes retro6Doc {
+      0%, 44% { opacity: 0; transform: translateX(-10px); }
+      66% { opacity: 1; transform: translateX(0); }
+      100% { opacity: 1; transform: translateX(0); }
+    }
+
+    .retroactive-spec-animation[data-retro-variant="f"] .retro6-stamp {
+      opacity: 0;
+      transform-origin: center;
+      animation: retro6Stamp 4.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+    @keyframes retro6Stamp {
+      0%, 62% { opacity: 0; transform: scale(0.98); }
+      74% { opacity: 0.85; transform: scale(1); }
+      100% { opacity: 0.85; transform: scale(1); }
+    }
+
+    /* Variant G: refined Linear-style (ultra-minimal) */
+    .retroactive-spec-animation[data-retro-variant="g"] .retro7-track {
+      stroke-dasharray: 200;
+      stroke-dashoffset: 200;
+      animation: retro7Track 4.5s cubic-bezier(0.25, 0.1, 0.25, 1) infinite;
+    }
+    @keyframes retro7Track {
+      0% { stroke-dashoffset: 200; opacity: 0; }
+      10% { stroke-dashoffset: 0; opacity: 0.4; }
+      90% { opacity: 0.4; }
+      100% { opacity: 0; }
+    }
+
+    .retroactive-spec-animation[data-retro-variant="g"] .retro7-code {
+      opacity: 0;
+      animation: retro7Code 4.5s cubic-bezier(0.25, 0.1, 0.25, 1) infinite;
+    }
+    @keyframes retro7Code {
+      0%, 6% { opacity: 0; transform: translateY(6px); }
+      18% { opacity: 1; transform: translateY(0); }
+      90% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    .retroactive-spec-animation[data-retro-variant="g"] .retro7-arrow {
+      stroke-dasharray: 100;
+      stroke-dashoffset: 100;
+      animation: retro7Arrow 4.5s cubic-bezier(0.25, 0.1, 0.25, 1) infinite;
+    }
+    @keyframes retro7Arrow {
+      0%, 28% { stroke-dashoffset: 100; opacity: 0; }
+      48% { stroke-dashoffset: 0; opacity: 0.5; }
+      90% { opacity: 0.5; }
+      100% { opacity: 0; }
+    }
+
+    .retroactive-spec-animation[data-retro-variant="g"] .retro7-spec {
+      opacity: 0;
+      animation: retro7Spec 4.5s cubic-bezier(0.25, 0.1, 0.25, 1) infinite;
+    }
+    @keyframes retro7Spec {
+      0%, 42% { opacity: 0; transform: translateX(-4px); }
+      56% { opacity: 1; transform: translateX(0); }
+      90% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    .retroactive-spec-animation[data-retro-variant="g"] .retro7-check {
+      opacity: 0;
+      animation: retro7Check 4.5s cubic-bezier(0.25, 0.1, 0.25, 1) infinite;
+    }
+    @keyframes retro7Check {
+      0%, 54% { opacity: 0; transform: scale(0.95); }
+      64% { opacity: 0.8; transform: scale(1); }
+      90% { opacity: 0.8; }
+      100% { opacity: 0; }
+    }
+
+    /* Variant H: fresh perspective - gap filling retroactively */
+    .retroactive-spec-animation[data-retro-variant="h"] .retro8-code {
+      opacity: 0;
+      animation: retro8Code 4.2s cubic-bezier(0.2, 0, 0.2, 1) infinite;
+    }
+    @keyframes retro8Code {
+      0%, 4% { opacity: 0; transform: translateY(5px); }
+      14% { opacity: 1; transform: translateY(0); }
+      86% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    .retroactive-spec-animation[data-retro-variant="h"] .retro8-gap {
+      opacity: 0;
+      animation: retro8Gap 4.2s cubic-bezier(0.2, 0, 0.2, 1) infinite;
+    }
+    @keyframes retro8Gap {
+      0%, 18% { opacity: 0; }
+      28% { opacity: 0.3; }
+      50% { opacity: 0.3; }
+      60% { opacity: 0; }
+      100% { opacity: 0; }
+    }
+
+    .retroactive-spec-animation[data-retro-variant="h"] .retro8-flow {
+      stroke-dasharray: 130;
+      stroke-dashoffset: 130;
+      animation: retro8Flow 4.2s cubic-bezier(0.2, 0, 0.2, 1) infinite;
+    }
+    @keyframes retro8Flow {
+      0%, 32% { stroke-dashoffset: 130; opacity: 0; }
+      50% { stroke-dashoffset: 0; opacity: 0.4; }
+      86% { opacity: 0.4; }
+      100% { opacity: 0; }
+    }
+
+    .retroactive-spec-animation[data-retro-variant="h"] .retro8-spec {
+      opacity: 0;
+      animation: retro8Spec 4.2s cubic-bezier(0.2, 0, 0.2, 1) infinite;
+    }
+    @keyframes retro8Spec {
+      0%, 42% { opacity: 0; transform: translateX(-5px) scale(0.96); }
+      56% { opacity: 1; transform: translateX(0) scale(1); }
+      86% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    .retroactive-spec-animation[data-retro-variant="h"] .retro8-indicator {
+      opacity: 0;
+      animation: retro8Indicator 4.2s cubic-bezier(0.2, 0, 0.2, 1) infinite;
+    }
+    @keyframes retro8Indicator {
+      0%, 52% { opacity: 0; transform: scale(0.9); }
+      62% { opacity: 0.6; transform: scale(1); }
+      86% { opacity: 0.6; }
+      100% { opacity: 0; }
+    }
+
+    /* Variant I: ultra-minimal from scratch */
+    .retroactive-spec-animation[data-retro-variant="i"] .retro9-code {
+      opacity: 0;
+      animation: retro9Code 3.8s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+    }
+    @keyframes retro9Code {
+      0%, 3% { opacity: 0; transform: translateY(4px); }
+      12% { opacity: 1; transform: translateY(0); }
+      88% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    .retroactive-spec-animation[data-retro-variant="i"] .retro9-line {
+      stroke-dasharray: 120;
+      stroke-dashoffset: 120;
+      animation: retro9Line 3.8s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+    }
+    @keyframes retro9Line {
+      0%, 20% { stroke-dashoffset: 120; opacity: 0; }
+      35% { stroke-dashoffset: 0; opacity: 0.35; }
+      88% { opacity: 0.35; }
+      100% { opacity: 0; }
+    }
+
+    .retroactive-spec-animation[data-retro-variant="i"] .retro9-spec {
+      opacity: 0;
+      animation: retro9Spec 3.8s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+    }
+    @keyframes retro9Spec {
+      0%, 38% { opacity: 0; transform: translateX(-3px); }
+      50% { opacity: 1; transform: translateX(0); }
+      88% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    .retroactive-spec-animation[data-retro-variant="i"] .retro9-dot {
+      opacity: 0;
+      animation: retro9Dot 3.8s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+    }
+    @keyframes retro9Dot {
+      0%, 48% { opacity: 0; transform: scale(0.8); }
+      58% { opacity: 0.5; transform: scale(1); }
+      88% { opacity: 0.5; }
+      100% { opacity: 0; }
+    }
+
+    /* Variant J: Restream.io style - dynamic, floating, modern */
+    .retroactive-spec-animation[data-retro-variant="j"] .retro10-code {
+      opacity: 0;
+      animation: retro10CodeFloat 4.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+    @keyframes retro10CodeFloat {
+      0%, 5% { opacity: 0; transform: translateY(15px) scale(0.95); }
+      15% { opacity: 1; transform: translateY(0) scale(1); }
+      25%, 75% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-3px) scale(1.01); }
+      85% { opacity: 1; transform: translateY(0) scale(1); }
+      100% { opacity: 0; transform: translateY(5px) scale(0.98); }
+    }
+
+    .retroactive-spec-animation[data-retro-variant="j"] .retro10-flow {
+      stroke-dasharray: 150;
+      stroke-dashoffset: 150;
+      animation: retro10Flow 4.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+    @keyframes retro10Flow {
+      0%, 20% { stroke-dashoffset: 150; opacity: 0; }
+      35% { stroke-dashoffset: 0; opacity: 0.6; }
+      75% { opacity: 0.6; }
+      100% { opacity: 0; }
+    }
+
+    .retroactive-spec-animation[data-retro-variant="j"] .retro10-spec {
+      opacity: 0;
+      animation: retro10SpecFloat 4.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+    @keyframes retro10SpecFloat {
+      0%, 40% { opacity: 0; transform: translateX(-12px) translateY(8px) scale(0.92); }
+      50% { opacity: 1; transform: translateX(0) translateY(0) scale(1); }
+      60% { transform: translateX(2px) translateY(-2px) scale(1.01); }
+      75% { transform: translateX(0) translateY(0) scale(1); }
+      85% { opacity: 1; }
+      100% { opacity: 0; transform: translateX(-5px) scale(0.96); }
+    }
+
+    .retroactive-spec-animation[data-retro-variant="j"] .retro10-glow {
+      opacity: 0;
+      animation: retro10Glow 4.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+    @keyframes retro10Glow {
+      0%, 45% { opacity: 0; transform: scale(0.8); }
+      55% { opacity: 0.4; transform: scale(1); }
+      65% { opacity: 0.6; transform: scale(1.1); }
+      75% { opacity: 0.4; transform: scale(1); }
+      85% { opacity: 0.3; }
+      100% { opacity: 0; }
+    }
+
+    .retroactive-spec-animation[data-retro-variant="j"] .retro10-particles circle {
+      opacity: 0;
+      animation: retro10Particle 4.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+    .retroactive-spec-animation[data-retro-variant="j"] .retro10-particles .p1 { animation-delay: 0.5s; }
+    .retroactive-spec-animation[data-retro-variant="j"] .retro10-particles .p2 { animation-delay: 0.7s; }
+    .retroactive-spec-animation[data-retro-variant="j"] .retro10-particles .p3 { animation-delay: 0.9s; }
+    @keyframes retro10Particle {
+      0%, 50% { opacity: 0; transform: translate(0, 0) scale(0); }
+      55% { opacity: 0.6; transform: translate(0, 0) scale(1); }
+      70% { opacity: 0.3; transform: translate(8px, -8px) scale(0.8); }
+      85% { opacity: 0; transform: translate(12px, -12px) scale(0); }
+      100% { opacity: 0; }
+    }
+
+    /* Variant K: better and simple - clean, smooth, clear */
+    .retroactive-spec-animation[data-retro-variant="k"] .retro11-code {
+      opacity: 0;
+      animation: retro11Code 4s cubic-bezier(0.25, 0.1, 0.25, 1) infinite;
+    }
+    @keyframes retro11Code {
+      0%, 5% { opacity: 0; transform: translateY(8px); }
+      18% { opacity: 1; transform: translateY(0); }
+      85% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    .retroactive-spec-animation[data-retro-variant="k"] .retro11-arrow {
+      stroke-dasharray: 140;
+      stroke-dashoffset: 140;
+      animation: retro11Arrow 4s cubic-bezier(0.25, 0.1, 0.25, 1) infinite;
+    }
+    @keyframes retro11Arrow {
+      0%, 25% { stroke-dashoffset: 140; opacity: 0; }
+      40% { stroke-dashoffset: 0; opacity: 0.5; }
+      85% { opacity: 0.5; }
+      100% { opacity: 0; }
+    }
+
+    .retroactive-spec-animation[data-retro-variant="k"] .retro11-spec {
+      opacity: 0;
+      animation: retro11Spec 4s cubic-bezier(0.25, 0.1, 0.25, 1) infinite;
+    }
+    @keyframes retro11Spec {
+      0%, 38% { opacity: 0; transform: translateX(-6px); }
+      52% { opacity: 1; transform: translateX(0); }
+      85% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    .retroactive-spec-animation[data-retro-variant="k"] .retro11-check {
+      opacity: 0;
+      animation: retro11Check 4s cubic-bezier(0.25, 0.1, 0.25, 1) infinite;
+    }
+    @keyframes retro11Check {
+      0%, 48% { opacity: 0; transform: scale(0.85); }
+      58% { opacity: 0.7; transform: scale(1); }
+      85% { opacity: 0.7; }
+      100% { opacity: 0; }
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-white flex flex-col items-center font-open text-textMuted pt-24 sm:pt-32 md:pt-[176px] px-4 sm:px-6">
+  <div class="relative w-full flex justify-center">
+    <header
+      class="fixed top-8 left-1/2 -translate-x-1/2 z-50 h-12 inline-flex flex-nowrap items-center gap-4 pl-4 pr-2 py-2 rounded-[200px] border border-black/5 bg-[#14141F] backdrop-blur-md shadow-[0_1px_4px_rgba(0,0,0,0.08),0_0_0_1px_rgba(0,0,0,0.05)] max-w-none"
+      aria-label="Main navigation"
+    >
+      <div class="w-5 h-6 shrink-0" aria-label="Logo">
+        <img src="./Group 2.svg" alt="Logo" class="w-5 h-6 object-contain" />
+      </div>
+      <a
+        class="inline text-sm leading-5 tracking-[-0.32px] text-textMuted hover:text-white transition-colors"
+        href="manifesto.html"
+      >
+        Manifesto
+      </a>
+      <a
+        class="inline text-sm leading-5 tracking-[-0.32px] text-textMuted hover:text-white transition-colors"
+        href="investors.html"
+      >
+        Investors
+      </a>
+      <button
+        class="waitlist-trigger inline-flex items-center justify-center gap-[10px] text-sm leading-[18px] tracking-[-0.32px] text-white bg-primary hover:bg-[#0099CC] rounded-[999px] px-3 py-[7px] shadow-[0_1px_1px_0_rgba(0,0,0,0.08),0_0_0_1px_rgba(0,0,0,0.05)] transition-colors"
+        type="button"
+      >
+        Join waitlist
+      </button>
+    </header>
+  </div>
+
+  <main class="flex flex-col items-center gap-4 sm:gap-6 w-full max-w-[640px] px-4 sm:px-0">
+    <!-- Badge -->
+    <div class="inline-flex flex-wrap items-center justify-center gap-2 py-[6.5px] px-3 rounded-[99px] bg-[#F7F7F7] cursor-pointer hover:bg-[#F0F0F0] transition-colors" onclick="window.location.href='manifesto.html'" data-cursor-element-id="cursor-el-1">
+      <span class="text-xs font-medium leading-normal text-[#777] font-open">Introducing Meyn AI</span>
+      <svg width="4" height="4" viewBox="0 0 4 4" fill="none" xmlns="http://www.w3.org/2000/svg" class="hidden sm:block">
+        <circle cx="2" cy="2" r="2" fill="#ccc"/>
+      </svg>
+      <a href="manifesto.html" class="text-xs font-normal leading-normal text-[#979797] font-sans hover:opacity-80 transition-opacity">Read more</a>
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M4.5 3L7.5 6L4.5 9" stroke="#979797" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+
+    <!-- Title -->
+    <h1 id="hero-title" class="self-stretch text-center text-[#181925] font-open text-3xl sm:text-4xl md:text-[48px] font-medium leading-[36px] sm:leading-[44px] md:leading-[56px] tracking-[-1.6px]">
+      PromptOps platform<br class="hidden sm:block"/>for vibe coders
+    </h1>
+
+    <!-- Description -->
+    <p id="hero-description" class="text-center text-[#777] font-open text-sm sm:text-base font-normal leading-5 sm:leading-6 tracking-[-0.32px] -mt-2">
+      Stop losing context in chat logs. Orchestrate your AI coding agents<br class="hidden sm:block"/>with structured specs and real-time feature tracking.
+    </p>
+
+    <!-- Waitlist Form -->
+    <form id="hero-waitlist-form" class="flex flex-col items-center gap-4 w-full">
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-start gap-2 sm:gap-[6px] w-full sm:w-auto">
+        <div class="relative input-group flex-1 sm:flex-none">
+          <input
+            type="email"
+            id="hero-email"
+            name="email"
+            placeholder="Email"
+            required
+            class="flex w-full sm:w-[264px] py-[11px] pr-4 pl-[38px] items-center gap-2 rounded-[999px] bg-white shadow-[0_1px_1px_0_rgba(0,0,0,0.08),0_0_0_1px_rgba(0,0,0,0.05)] text-sm text-left font-normal text-[#181925] placeholder:text-[#CCC] placeholder:text-sm placeholder:font-normal placeholder:leading-[18px] placeholder:tracking-[-0.32px] focus:outline-none focus:ring-2 focus:ring-primary/20"
+          />
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="none" class="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none shrink-0 aspect-square transition-colors">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M2.67397 12.54C2.20623 12.49 1.76899 12.2838 1.43294 11.9546C1.09688 11.6255 0.881627 11.1926 0.821973 10.726C0.671973 9.52099 0.521973 8.27599 0.521973 6.99999C0.521973 6.06099 0.603973 5.13799 0.705973 4.23699C0.711 4.19287 0.727732 4.1509 0.754435 4.11543C0.781139 4.07996 0.816842 4.05227 0.857846 4.03523C0.89885 4.0182 0.943663 4.01244 0.987642 4.01855C1.03162 4.02466 1.07317 4.04242 1.10797 4.06999L5.37497 7.43499C5.838 7.79996 6.4104 7.99844 6.99997 7.99844C7.58954 7.99844 8.16195 7.79996 8.62497 7.43499L12.893 4.06999C12.9278 4.04268 12.9692 4.02515 13.0131 4.01918C13.0569 4.01321 13.1015 4.01903 13.1424 4.03604C13.1832 4.05305 13.2188 4.08063 13.2454 4.11595C13.2721 4.15127 13.2888 4.19305 13.294 4.23699C13.396 5.13799 13.478 6.06099 13.478 6.99999C13.478 8.27599 13.328 9.52199 13.178 10.726C13.1183 11.1926 12.9031 11.6255 12.567 11.9546C12.231 12.2838 11.7937 12.49 11.326 12.54L11.192 12.554C9.83797 12.695 8.43597 12.842 6.99997 12.842C5.56397 12.842 4.16197 12.695 2.80797 12.554L2.67397 12.54ZM12.78 2.28899C12.8149 2.338 12.8292 2.39874 12.8199 2.45819C12.8105 2.51764 12.7783 2.57106 12.73 2.60699L7.85097 6.45299C7.60862 6.64441 7.3088 6.74853 6.99997 6.74853C6.69114 6.74853 6.39133 6.64441 6.14897 6.45299L1.26997 2.60699C1.22169 2.57106 1.18942 2.51764 1.18007 2.45819C1.17072 2.39874 1.18505 2.338 1.21997 2.28899C1.39203 2.05789 1.61002 1.86487 1.86023 1.72204C2.11045 1.5792 2.38749 1.48965 2.67397 1.45899L2.80797 1.44599C4.16197 1.30399 5.56397 1.15799 6.99997 1.15799C8.43597 1.15799 9.83797 1.30399 11.192 1.44599L11.326 1.45999C11.6124 1.49052 11.8894 1.57993 12.1396 1.72258C12.3898 1.86524 12.6078 2.05808 12.78 2.28899Z" fill="#CCCCCC"/>
+          </svg>
+        </div>
+        <button
+          type="submit"
+          class="inline-flex items-center justify-center gap-[10px] py-[11px] px-4 rounded-[999px] bg-primary hover:bg-[#0099CC] text-white text-sm shadow-[0_1px_1px_0_rgba(0,0,0,0.08),0_0_0_1px_rgba(0,0,0,0.05)] w-full sm:w-auto transition-colors"
+        >
+          Join waitlist
+        </button>
+      </div>
+      <p id="hero-counter" class="text-center text-[#cccccc] font-open text-sm font-light leading-5 tracking-[-0.32px]">
+        254+ people already in the line
+      </p>
+    </form>
+    
+    <!-- Hero Get Ahead Section (hidden by default) -->
+    <div id="hero-get-ahead" class="hidden flex flex-col items-center gap-4 w-full">
+      <div class="flex items-center justify-between gap-2 px-4 py-2 rounded-[8px] bg-[#F7F7F7] w-full max-w-[320px]">
+        <span id="hero-user-email" class="text-[#181925] font-open text-sm font-medium"></span>
+        <span id="hero-user-id" class="text-right text-[#777] font-open text-sm font-medium"></span>
+      </div>
+      <button
+        id="hero-fill-form-btn"
+        type="button"
+        class="inline-flex items-center justify-center gap-[10px] py-[11px] px-4 rounded-[999px] bg-primary hover:bg-[#0099CC] text-white text-sm shadow-[0_1px_1px_0_rgba(0,0,0,0.08),0_0_0_1px_rgba(0,0,0,0.05)] w-full sm:w-auto transition-colors"
+      >
+        Fill out the form
+      </button>
+    </div>
+  </main>
+  
+  <!-- Toast Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <div class="relative mt-12 sm:mt-16 md:mt-24 flex justify-center w-full px-4 sm:px-6">
+    <section class="w-full max-w-[1024px] h-[300px] sm:h-[400px] md:h-[500px] lg:h-[665px] rounded-2xl border border-[#EDEDED] relative" style="background: url('./Prompt Ops.jpg') no-repeat center center; background-size: cover;"></section>
+    <div class="absolute left-1/2 bottom-0 flex flex-col items-start gap-1.5 translate-x-[calc(50%+12px)] sm:translate-x-[calc(min(50vw,512px)+12px)]">
+      <div class="option-btn flex items-center gap-1.5 py-2 px-2.5 rounded-[99px] border border-[#F4F4F4] bg-white cursor-pointer" data-option="1">
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none" class="shrink-0 aspect-square option-icon">
+          <g clip-path="url(#clip0_20_192_opt1)">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M11.7856 4.23537C11.7656 2.87931 10.9979 1.54388 9.81663 0.993463C9.21638 0.713736 8.52021 0.644068 7.79422 0.874517C7.18954 1.06646 6.58392 1.45984 5.99994 2.07834C5.41596 1.45984 4.81035 1.06646 4.20566 0.874517C3.47967 0.644068 2.7835 0.713736 2.18321 0.993463C1.00203 1.54388 0.234326 2.87931 0.214281 4.23537L0.214233 4.2417C0.214233 6.21954 1.39048 7.97179 2.6362 9.20162C3.26503 9.82236 3.9288 10.3276 4.50781 10.6804C4.79714 10.8567 5.07106 10.9984 5.31376 11.0974C5.54562 11.1921 5.78752 11.264 5.99994 11.264C6.21236 11.264 6.45426 11.1921 6.68612 11.0974C6.92882 10.9984 7.20274 10.8567 7.49207 10.6804C8.07109 10.3276 8.73483 9.82236 9.36372 9.20162C10.6094 7.97179 11.7857 6.21954 11.7857 4.2417L11.7856 4.23537Z" fill="#DDDDDD"/>
+          </g>
+          <defs>
+            <clipPath id="clip0_20_192_opt1">
+              <rect width="12" height="12" fill="white"/>
+            </clipPath>
+          </defs>
+        </svg>
+        <span class="text-xs font-open font-normal leading-3 tracking-[-0.32px] text-[#CCC]">27</span>
+      </div>
+      <div class="option-btn flex items-center gap-1.5 py-2 px-2.5 rounded-[99px] border border-[#F4F4F4] bg-white cursor-pointer" data-option="2">
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none" class="shrink-0 aspect-square option-icon">
+          <g clip-path="url(#clip0_20_259_opt2)">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M6.58278 0.667114C7.36569 0.667114 7.96782 1.35933 7.85937 2.13469L7.6917 3.33334L9.33369 3.33344C9.81943 3.33344 10.4709 3.56348 11 3.98679C11.5427 4.42095 12 5.09451 12 5.99975C12 6.84501 11.5908 8.14403 10.9983 9.21821C10.6987 9.76147 10.3373 10.2753 9.93051 10.6591C9.52903 11.0378 9.03712 11.3324 8.48471 11.3324C6.40165 11.3324 4.61557 10.8526 3.70834 10.5947C3.68873 10.5891 3.66903 10.5865 3.64864 10.5865C3.5271 10.5865 3.42857 10.488 3.42857 10.3664V4.47435C3.42857 4.29798 3.48297 4.12591 3.58437 3.98159L5.52807 1.21509C5.76942 0.871577 6.16295 0.667114 6.58278 0.667114ZM1.17857 3.8814C0.527664 3.8814 0 4.40907 0 5.05997V9.98853C0 10.6394 0.527664 11.1671 1.17857 11.1671C1.82948 11.1671 2.35714 10.6394 2.35714 9.98853V5.05997C2.35714 4.40907 1.82948 3.8814 1.17857 3.8814Z" fill="#DDDDDD"/>
+          </g>
+          <defs>
+            <clipPath id="clip0_20_259_opt2">
+              <rect width="12" height="12" fill="white"/>
+            </clipPath>
+          </defs>
+        </svg>
+        <span class="text-xs font-open font-normal leading-3 tracking-[-0.32px] text-[#CCC]">12</span>
+      </div>
+      <div class="option-btn flex items-center gap-1.5 py-2 px-2.5 rounded-[99px] border border-[#F4F4F4] bg-white cursor-pointer" data-option="3">
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none" class="shrink-0 aspect-square option-icon">
+          <g clip-path="url(#clip0_20_214_opt3)">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M5.41722 11.3329C4.63431 11.3329 4.03218 10.6407 4.14063 9.86531L4.3083 8.66666L2.66631 8.66656C2.18057 8.66656 1.52914 8.43652 1.00003 8.01321C0.457286 7.57905 0 6.90549 0 6.00025C0 5.15499 0.4092 3.85597 1.00166 2.78179C1.30131 2.23853 1.66269 1.72468 2.06949 1.34093C2.47097 0.962161 2.96288 0.667646 3.51529 0.667646C5.59835 0.667646 7.38443 1.14739 8.29166 1.4053C8.31127 1.41088 8.33097 1.41353 8.35136 1.41353C8.4729 1.41353 8.57143 1.51202 8.57143 1.63356L8.57143 7.52565C8.57143 7.70202 8.51703 7.87409 8.41563 8.01841L6.47193 10.7849C6.23058 11.1284 5.83705 11.3329 5.41722 11.3329ZM10.8214 8.1186C11.4723 8.1186 12 7.59093 12 6.94003L12 2.01147C12 1.36056 11.4723 0.832904 10.8214 0.832904C10.1705 0.832904 9.64286 1.36056 9.64286 2.01147L9.64286 6.94003C9.64286 7.59093 10.1705 8.1186 10.8214 8.1186Z" fill="#DDDDDD"/>
+          </g>
+          <defs>
+            <clipPath id="clip0_20_214_opt3">
+              <rect width="12" height="12" fill="white" transform="matrix(-1 0 0 -1 12 12)"/>
+            </clipPath>
+          </defs>
+        </svg>
+        <span class="text-xs font-open font-normal leading-3 tracking-[-0.32px] text-[#CCC]">5</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Info Card -->
+  <div class="w-fit mx-auto px-4 sm:px-0">
+    <div id="video-card" class="mt-6 h-[80px] p-4 flex items-start justify-center gap-4 rounded-[16px] border border-[#F7F7F7] hover:border-[#eee] bg-white shadow-none transition-colors cursor-pointer" style="width: fit-content;">
+      <div class="relative w-[85px] h-[48px] flex items-center justify-center shrink-0 rounded-lg bg-[#F7F7F7] overflow-hidden">
+        <img
+          src="./image 16.png"
+          alt="Meyn AI icon"
+          class="w-full h-full object-cover"
+        />
+        <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" class="w-4 h-4 shrink-0">
+            <g clip-path="url(#clip0_59_744)">
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M4.17973 0.542551C5.40699 0.405755 6.68763 0.285767 7.99999 0.285767C9.31236 0.285767 10.593 0.405755 11.8202 0.542551C13.7311 0.755537 15.2664 2.28954 15.4712 4.2038C15.6018 5.42472 15.7143 6.69678 15.7143 8.00005C15.7143 9.30331 15.6018 10.5754 15.4712 11.7963C15.2664 13.7106 13.7311 15.2446 11.8202 15.4575C10.593 15.5943 9.31236 15.7143 7.99999 15.7143C6.68763 15.7143 5.40699 15.5943 4.17973 15.4575C2.26893 15.2446 0.7336 13.7106 0.528796 11.7963C0.398172 10.5754 0.285706 9.30331 0.285706 8.00005C0.285706 6.69678 0.398172 5.42472 0.528796 4.2038C0.733599 2.28954 2.26893 0.755537 4.17973 0.542551ZM5.32736 10.6786C5.19966 9.84404 5.05788 8.74878 5.05788 8.00008C5.05788 7.25134 5.19972 6.15604 5.32747 5.32145C5.42683 4.67232 6.06612 4.25681 6.69047 4.46033C8.50323 5.05124 10.2035 5.98205 11.3511 7.40886C11.6296 7.75498 11.6295 8.24516 11.3511 8.59126C10.2034 10.018 8.50315 10.9489 6.69038 11.5398C6.066 11.7434 5.42669 11.3278 5.32736 10.6786Z" fill="white"/>
+            </g>
+            <defs>
+              <clipPath id="clip0_59_744">
+                <rect width="16" height="16" fill="white"/>
+              </clipPath>
+            </defs>
+          </svg>
+        </div>
+      </div>
+      <div class="flex flex-col items-start gap-1">
+        <p class="text-sm leading-5 tracking-[-0.32px] text-[#181925] font-medium">Learn why we're building</p>
+        <p class="text-sm leading-5 tracking-[-0.32px] text-[#979797] font-normal">Watch the video</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Video Modal -->
+  <div id="video-modal" class="video-modal">
+    <div class="video-modal-overlay"></div>
+    <div class="video-modal-content">
+      <button class="video-modal-close" aria-label="Close modal">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+      <div class="video-modal-body">
+        <iframe 
+          id="video-iframe"
+          src="" 
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+          allowfullscreen
+        ></iframe>
+      </div>
+    </div>
+  </div>
+
+  <!-- Waitlist Modal -->
+  <div id="waitlist-modal" class="waitlist-modal">
+    <div class="waitlist-modal-overlay"></div>
+    <div class="waitlist-modal-content">
+      <div class="waitlist-modal-header">
+        <h2 id="modal-title" class="waitlist-modal-title">Join the waitlist</h2>
+        <button class="waitlist-modal-close" aria-label="Close modal">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <p id="modal-description" class="waitlist-modal-description">
+        Stop losing context in chat logs. Orchestrate your AI coding agents with structured specs and real-time feature tracking.
+      </p>
+      <form class="waitlist-modal-form" id="waitlist-form">
+        <div class="waitlist-modal-form-group">
+          <div class="waitlist-modal-input-wrapper input-group">
+            <input
+              type="email"
+              id="waitlist-email"
+              name="email"
+              placeholder="Email"
+              class="waitlist-modal-input"
+              required
+            />
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="none" class="waitlist-modal-input-icon">
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M2.67397 12.54C2.20623 12.49 1.76899 12.2838 1.43294 11.9546C1.09688 11.6255 0.881627 11.1926 0.821973 10.726C0.671973 9.52099 0.521973 8.27599 0.521973 6.99999C0.521973 6.06099 0.603973 5.13799 0.705973 4.23699C0.711 4.19287 0.727732 4.1509 0.754435 4.11543C0.781139 4.07996 0.816842 4.05227 0.857846 4.03523C0.89885 4.0182 0.943663 4.01244 0.987642 4.01855C1.03162 4.02466 1.07317 4.04242 1.10797 4.06999L5.37497 7.43499C5.838 7.79996 6.4104 7.99844 6.99997 7.99844C7.58954 7.99844 8.16195 7.79996 8.62497 7.43499L12.893 4.06999C12.9278 4.04268 12.9692 4.02515 13.0131 4.01918C13.0569 4.01321 13.1015 4.01903 13.1424 4.03604C13.1832 4.05305 13.2188 4.08063 13.2454 4.11595C13.2721 4.15127 13.2888 4.19305 13.294 4.23699C13.396 5.13799 13.478 6.06099 13.478 6.99999C13.478 8.27599 13.328 9.52199 13.178 10.726C13.1183 11.1926 12.9031 11.6255 12.567 11.9546C12.231 12.2838 11.7937 12.49 11.326 12.54L11.192 12.554C9.83797 12.695 8.43597 12.842 6.99997 12.842C5.56397 12.842 4.16197 12.695 2.80797 12.554L2.67397 12.54ZM12.78 2.28899C12.8149 2.338 12.8292 2.39874 12.8199 2.45819C12.8105 2.51764 12.7783 2.57106 12.73 2.60699L7.85097 6.45299C7.60862 6.64441 7.3088 6.74853 6.99997 6.74853C6.69114 6.74853 6.39133 6.64441 6.14897 6.45299L1.26997 2.60699C1.22169 2.57106 1.18942 2.51764 1.18007 2.45819C1.17072 2.39874 1.18505 2.338 1.21997 2.28899C1.39203 2.05789 1.61002 1.86487 1.86023 1.72204C2.11045 1.5792 2.38749 1.48965 2.67397 1.45899L2.80797 1.44599C4.16197 1.30399 5.56397 1.15799 6.99997 1.15799C8.43597 1.15799 9.83797 1.30399 11.192 1.44599L11.326 1.45999C11.6124 1.49052 11.8894 1.57993 12.1396 1.72258C12.3898 1.86524 12.6078 2.05808 12.78 2.28899Z" fill="#CCCCCC"/>
+            </svg>
+          </div>
+          <button type="submit" class="waitlist-modal-submit">
+            Join waitlist
+          </button>
+        </div>
+      </form>
+      <p id="modal-counter" class="waitlist-modal-footer">
+        254+ people already in the line
+      </p>
+      
+      <!-- Modal Get Ahead Content (hidden by default) -->
+      <div id="modal-get-ahead-content" class="hidden flex flex-col items-center gap-4 w-full mt-4">
+        <div class="flex items-start justify-between gap-2 px-4 py-2 h-[40px] rounded-[8px] bg-[#F7F7F7] w-full">
+          <span id="modal-user-email" class="text-[#181925] font-open text-sm font-medium"></span>
+          <span id="modal-user-id" class="text-right text-[#777] font-open text-sm font-medium"></span>
+        </div>
+        <button
+          id="modal-fill-form-btn"
+          type="button"
+          class="waitlist-modal-submit w-full"
+        >
+          Fill out the form
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FAQ Section -->
+  <div class="mt-48 flex flex-col items-center gap-4 w-full px-4 sm:px-0">
+    <!-- Label -->
+    <div class="inline-flex items-center gap-2 py-[6.5px] px-3 rounded-[12px] bg-[#F7F7F7]">
+      <span class="text-xs font-medium leading-normal text-[#777] font-open">DISCOVER</span>
+    </div>
+
+    <!-- Title -->
+    <h2 class="self-stretch text-center text-[#181925] font-open text-[36px] font-medium leading-[44px] tracking-[-0.64px]">
+      Designed for<br/>serious vibe coders
+    </h2>
+
+    <!-- Description -->
+    <p class="self-stretch text-center text-[#777] font-open text-base font-normal leading-6 tracking-[-0.32px]">
+      Find answers to common questions about PromptOps platform
+    </p>
+  </div>
+
+  <!-- FAQ Items -->
+  <div class="mt-16 flex flex-col items-center gap-0 w-full px-4 sm:px-0 max-w-[1024px] mx-0">
+    <!-- FAQ Item 1 -->
+    <div class="flex flex-col sm:flex-row items-center gap-12 w-[1024px] h-[480px] px-5">
+      <div class="w-full sm:w-[492px] h-[300px] sm:h-[480px] bg-[#FAFAFA] rounded-[24px] shrink-0 version-history-animation overflow-hidden" style="aspect-ratio: 41 / 40;">
+        <svg viewBox="0 0 400 480" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
+          <defs>
+            <linearGradient id="timelineGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" style="stop-color:#00B5E9;stop-opacity:0.2" />
+              <stop offset="50%" style="stop-color:#00B5E9;stop-opacity:0.4" />
+              <stop offset="100%" style="stop-color:#00B5E9;stop-opacity:0.2" />
+            </linearGradient>
+          </defs>
+          
+          <!-- Enhanced Timeline -->
+          <line class="timeline" x1="200" y1="70" x2="200" y2="410" stroke="url(#timelineGradient)" stroke-width="2.5" stroke-linecap="round" />
+          
+          <!-- Version nodes - enhanced design -->
+          <g class="version-node" data-version="1">
+            <circle cx="200" cy="120" r="8" fill="#FFFFFF" stroke="#00B5E9" stroke-width="2" class="node-circle" />
+            <circle cx="200" cy="120" r="4" fill="#00B5E9" class="node-dot" />
+            <rect x="90" y="108" width="55" height="24" rx="8" fill="#FFFFFF" stroke="#00B5E9" stroke-width="1.5" class="spec-card" />
+            <line x1="100" y1="118" x2="135" y2="118" stroke="#00B5E9" stroke-width="1" opacity="0.4" />
+            <line x1="100" y1="123" x2="130" y2="123" stroke="#00B5E9" stroke-width="1" opacity="0.2" />
+          </g>
+          
+          <g class="version-node" data-version="2">
+            <circle cx="200" cy="200" r="8" fill="#FFFFFF" stroke="#00B5E9" stroke-width="2" class="node-circle" />
+            <circle cx="200" cy="200" r="4" fill="#00B5E9" class="node-dot" />
+            <rect x="90" y="188" width="55" height="24" rx="8" fill="#FFFFFF" stroke="#00B5E9" stroke-width="1.5" class="spec-card" />
+            <line x1="100" y1="198" x2="135" y2="198" stroke="#00B5E9" stroke-width="1" opacity="0.4" />
+            <line x1="100" y1="203" x2="130" y2="203" stroke="#00B5E9" stroke-width="1" opacity="0.2" />
+            <line x1="200" y1="128" x2="200" y2="192" stroke="#00B5E9" stroke-width="2" opacity="0.25" class="connection-line" />
+          </g>
+          
+          <g class="version-node active" data-version="3">
+            <circle cx="200" cy="280" r="10" fill="#FFFFFF" stroke="#00B5E9" stroke-width="2.5" class="node-circle active-circle" />
+            <circle cx="200" cy="280" r="5" fill="#00B5E9" class="node-dot active-dot" />
+            <rect x="90" y="268" width="55" height="24" rx="8" fill="#FFFFFF" stroke="#00B5E9" stroke-width="2" class="spec-card active-card" />
+            <line x1="100" y1="278" x2="135" y2="278" stroke="#00B5E9" stroke-width="1.5" opacity="0.5" />
+            <line x1="100" y1="283" x2="130" y2="283" stroke="#00B5E9" stroke-width="1" opacity="0.3" />
+            <line x1="200" y1="208" x2="200" y2="272" stroke="#00B5E9" stroke-width="2" opacity="0.25" class="connection-line" />
+          </g>
+          
+          <g class="version-node" data-version="4">
+            <circle cx="200" cy="360" r="8" fill="#FFFFFF" stroke="#00B5E9" stroke-width="2" class="node-circle" />
+            <circle cx="200" cy="360" r="4" fill="#00B5E9" class="node-dot" />
+            <rect x="90" y="348" width="55" height="24" rx="8" fill="#FFFFFF" stroke="#00B5E9" stroke-width="1.5" class="spec-card" />
+            <line x1="100" y1="358" x2="135" y2="358" stroke="#00B5E9" stroke-width="1" opacity="0.4" />
+            <line x1="100" y1="363" x2="130" y2="363" stroke="#00B5E9" stroke-width="1" opacity="0.2" />
+            <line x1="200" y1="288" x2="200" y2="352" stroke="#00B5E9" stroke-width="2" opacity="0.25" class="connection-line" />
+          </g>
+          
+          <!-- Enhanced Chat logs - fading away -->
+          <g class="chat-fading">
+            <rect x="250" y="130" width="50" height="28" rx="14" fill="#E8E8E8" opacity="0.6" class="chat-bubble" />
+            <circle cx="265" cy="144" r="2" fill="#CCCCCC" opacity="0.5" />
+            <circle cx="275" cy="144" r="2" fill="#CCCCCC" opacity="0.4" />
+            <circle cx="285" cy="144" r="2" fill="#CCCCCC" opacity="0.3" />
+            <circle cx="295" cy="144" r="1.5" fill="#CCCCCC" opacity="0.2" />
+          </g>
+          
+          <g class="chat-fading">
+            <rect x="255" y="210" width="50" height="28" rx="14" fill="#E8E8E8" opacity="0.6" class="chat-bubble" />
+            <circle cx="270" cy="224" r="2" fill="#CCCCCC" opacity="0.5" />
+            <circle cx="280" cy="224" r="2" fill="#CCCCCC" opacity="0.4" />
+            <circle cx="290" cy="224" r="2" fill="#CCCCCC" opacity="0.3" />
+          </g>
+          
+          <g class="chat-fading">
+            <rect x="260" y="290" width="45" height="26" rx="13" fill="#E8E8E8" opacity="0.5" class="chat-bubble" />
+            <circle cx="275" cy="303" r="1.5" fill="#CCCCCC" opacity="0.4" />
+            <circle cx="285" cy="303" r="1.5" fill="#CCCCCC" opacity="0.3" />
+          </g>
+          
+          <!-- Enhanced Oral history - fading waves -->
+          <g class="oral-fading">
+            <path d="M 270 330 Q 275 325, 280 330 T 290 330" stroke="#E0E0E0" stroke-width="2.5" fill="none" opacity="0.5" />
+            <path d="M 270 335 Q 275 330, 280 335 T 290 335" stroke="#E0E0E0" stroke-width="2" fill="none" opacity="0.4" />
+            <path d="M 270 340 Q 275 335, 280 340 T 290 340" stroke="#E0E0E0" stroke-width="1.5" fill="none" opacity="0.3" />
+          </g>
+          
+          <g class="oral-fading">
+            <path d="M 265 390 Q 270 385, 275 390 T 285 390" stroke="#E0E0E0" stroke-width="2.5" fill="none" opacity="0.5" />
+            <path d="M 265 395 Q 270 390, 275 395 T 285 395" stroke="#E0E0E0" stroke-width="2" fill="none" opacity="0.4" />
+          </g>
+        </svg>
+      </div>
+      <div class="flex flex-col gap-4 flex-1 justify-center items-center">
+        <h3 class="flex flex-col justify-center w-[346px] h-[61px] text-center text-[#181925] font-open text-[24px] font-medium leading-[32px] tracking-[-0.42px]">Version History<br/>& Traceability</h3>
+        <p class="flex flex-col justify-center w-[346.055px] h-[68px] text-center text-[#666] font-open text-base font-normal leading-6 tracking-[-0.32px]">Specs must evolve but stay traceable; <br/>oral history and chat logs get lost.</p>
+      </div>
+    </div>
+
+    <!-- FAQ Item 2 -->
+    <div class="flex flex-col sm:flex-row items-center gap-6 w-[1024px] h-[480px] px-[20px]">
+      <div class="flex flex-col gap-3 flex-1 justify-center items-center">
+        <h3 class="flex flex-col justify-center w-[216px] h-[61px] text-center text-[#181925] font-open text-[24px] font-medium leading-[32px] tracking-[-0.42px]">Spec Quality<br/>Gates</h3>
+        <p class="flex flex-col justify-center w-[346.055px] h-[68px] text-center text-[#666] font-open text-base font-normal leading-6 tracking-[-0.32px]">Validate specifications before code<br/>generation to catch ambiguity early</p>
+      </div>
+      <div class="w-full sm:w-[492px] h-[300px] sm:h-[480px] bg-[#FAFAFA] rounded-[24px] shrink-0 quality-gates-animation overflow-hidden" style="aspect-ratio: 41 / 40;" data-qg-variant="b">
+        <svg viewBox="0 0 400 480" xmlns="http://www.w3.org/2000/svg" class="w-full h-full qg-variant qg-a">
+          <defs>
+            <marker id="qg-arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+              <path d="M 0 0 L 8 4 L 0 8 Z" fill="#DADADA" />
+            </marker>
+          </defs>
+
+          <!-- Minimal flow line -->
+          <line x1="78" y1="240" x2="322" y2="240" stroke="#E5E5E5" stroke-width="1.25" stroke-linecap="round" class="flow-line" />
+          
+          <!-- Spec document -->
+          <g class="spec-entering">
+            <rect x="70" y="196" width="74" height="88" rx="10" fill="#FFFFFF" stroke="#E5E5E5" stroke-width="1.25" class="spec-doc" />
+            <rect x="80" y="220" width="54" height="2" rx="1" fill="#BDBDBD" opacity="0.55" />
+            <rect x="80" y="234" width="48" height="2" rx="1" fill="#BDBDBD" opacity="0.45" />
+            <rect x="80" y="248" width="42" height="2" rx="1" fill="#BDBDBD" opacity="0.35" />
+            <rect x="80" y="262" width="32" height="2" rx="1" fill="#BDBDBD" opacity="0.25" />
+          </g>
+          
+          <!-- Quality Gate -->
+          <g class="quality-gate">
+            <rect x="170" y="204" width="64" height="76" rx="12" fill="#FFFFFF" stroke="#00B5E9" stroke-width="1.5" class="gate-frame" />
+            <line x1="182" y1="226" x2="222" y2="226" stroke="#E5E5E5" stroke-width="1" opacity="0.7" />
+            <line x1="182" y1="252" x2="222" y2="252" stroke="#E5E5E5" stroke-width="1" opacity="0.7" />
+            <circle cx="202" cy="240" r="10" fill="#00B5E9" opacity="0.08" />
+            <path d="M 197 240 L 201 244 L 208 236" stroke="#00B5E9" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="check-icon" />
+          </g>
+          
+          <!-- Validated spec -->
+          <g class="validated-spec">
+            <rect x="256" y="196" width="74" height="88" rx="10" fill="#FFFFFF" stroke="#E5E5E5" stroke-width="1.25" class="spec-validated" />
+            <rect x="266" y="220" width="54" height="2" rx="1" fill="#BDBDBD" opacity="0.55" />
+            <rect x="266" y="234" width="48" height="2" rx="1" fill="#BDBDBD" opacity="0.45" />
+            <rect x="266" y="248" width="42" height="2" rx="1" fill="#BDBDBD" opacity="0.35" />
+            <circle cx="320" cy="212" r="3" fill="#00B5E9" opacity="0.7" />
+          </g>
+          
+          <!-- Code output -->
+          <g class="code-output">
+            <rect x="256" y="310" width="74" height="56" rx="10" fill="#1A1A1A" stroke="#E5E5E5" stroke-width="1.25" class="code-block" />
+            <circle cx="268" cy="328" r="1.6" fill="#00B5E9" opacity="0.9" />
+            <rect x="274" y="327" width="46" height="2" rx="1" fill="#00B5E9" opacity="0.75" />
+            <rect x="268" y="342" width="40" height="2" rx="1" fill="#00B5E9" opacity="0.6" />
+            <rect x="268" y="356" width="34" height="2" rx="1" fill="#00B5E9" opacity="0.45" />
+          </g>
+          
+          <!-- Flow arrows -->
+          <g class="flow-arrows">
+            <path d="M 144 240 L 170 240" stroke="#DADADA" stroke-width="1.25" fill="none" marker-end="url(#qg-arrow)" class="arrow-1" />
+            <path d="M 234 240 L 256 240" stroke="#DADADA" stroke-width="1.25" fill="none" marker-end="url(#qg-arrow)" class="arrow-2" />
+            <path d="M 330 284 L 330 310" stroke="#DADADA" stroke-width="1.25" fill="none" marker-end="url(#qg-arrow)" class="arrow-3" />
+          </g>
+        </svg>
+
+        <!-- Variant B (default): even more Linear-minimal, different idea -->
+        <svg viewBox="0 0 400 480" xmlns="http://www.w3.org/2000/svg" class="w-full h-full qg-variant qg-b">
+          <!-- Track -->
+          <line x1="90" y1="240" x2="310" y2="240" stroke="#E5E5E5" stroke-width="1.25" stroke-linecap="round" class="qg2-flow" />
+
+          <!-- Gates -->
+          <circle cx="160" cy="240" r="8" fill="#FFFFFF" stroke="#E5E5E5" stroke-width="1.25" class="qg2-gate qg2-g1" />
+          <circle cx="220" cy="240" r="8" fill="#FFFFFF" stroke="#E5E5E5" stroke-width="1.25" class="qg2-gate qg2-g2" />
+          <circle cx="280" cy="240" r="8" fill="#FFFFFF" stroke="#E5E5E5" stroke-width="1.25" class="qg2-gate qg2-g3" />
+
+          <!-- Spec chip (moves along track) -->
+          <g class="qg2-spec">
+            <rect x="96" y="226" width="62" height="28" rx="10" fill="#FFFFFF" stroke="#E5E5E5" stroke-width="1.25" />
+            <rect x="108" y="236" width="38" height="2" rx="1" fill="#BDBDBD" opacity="0.55" />
+            <rect x="108" y="242" width="28" height="2" rx="1" fill="#BDBDBD" opacity="0.35" />
+          </g>
+
+          <!-- Drop to code -->
+          <path d="M 280 248 L 280 294" stroke="#E5E5E5" stroke-width="1.25" stroke-linecap="round" class="qg2-drop" />
+
+          <!-- Code chip -->
+          <g class="qg2-code">
+            <rect x="244" y="298" width="92" height="34" rx="12" fill="#1A1A1A" stroke="#E5E5E5" stroke-width="1.25" />
+            <circle cx="258" cy="315" r="1.6" fill="#00B5E9" opacity="0.9" />
+            <rect x="264" y="314" width="54" height="2" rx="1" fill="#00B5E9" opacity="0.7" />
+          </g>
+        </svg>
+      </div>
+    </div>
+
+    <!-- FAQ Item 3 -->
+    <div class="flex flex-col sm:flex-row items-center gap-6 w-[1024px] h-[480px] px-[20px]">
+      <div class="w-full sm:w-[492px] h-[300px] sm:h-[480px] bg-[#FAFAFA] rounded-[24px] shrink-0 retroactive-spec-animation overflow-hidden" style="aspect-ratio: 41/40;" data-retro-variant="k">
+        <svg viewBox="0 0 400 480" xmlns="http://www.w3.org/2000/svg" class="w-full h-full retro-variant retro-a">
+          <defs>
+            <linearGradient id="retroTimelineGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" style="stop-color:#00B5E9;stop-opacity:0.08" />
+              <stop offset="100%" style="stop-color:#00B5E9;stop-opacity:0.12" />
+            </linearGradient>
+          </defs>
+          
+          <!-- Minimal timeline -->
+          <line x1="200" y1="120" x2="200" y2="360" stroke="#00B5E9" stroke-width="1.5" stroke-linecap="round" opacity="0.15" class="timeline" />
+          
+          <!-- Hot fix code - minimal -->
+          <g class="hotfix-code">
+            <rect x="100" y="160" width="80" height="80" rx="12" fill="#181925" stroke="#00B5E9" stroke-width="2" class="code-hotfix" />
+            <rect x="110" y="180" width="60" height="2" rx="1" fill="#00B5E9" opacity="0.6" />
+            <circle cx="115" cy="181" r="1.5" fill="#00B5E9" opacity="0.7" />
+            <circle cx="123" cy="181" r="1.5" fill="#00B5E9" opacity="0.5" />
+            <rect x="110" y="192" width="50" height="2" rx="1" fill="#00B5E9" opacity="0.5" />
+            <rect x="110" y="204" width="45" height="2" rx="1" fill="#00B5E9" opacity="0.4" />
+            <rect x="110" y="216" width="40" height="2" rx="1" fill="#00B5E9" opacity="0.3" />
+            <rect x="110" y="228" width="35" height="2" rx="1" fill="#00B5E9" opacity="0.2" />
+            <!-- Hot fix badge -->
+            <circle cx="175" cy="170" r="4" fill="#00B5E9" opacity="0.7" />
+            <text x="175" y="173" font-family="Open Runde, Inter, sans-serif" font-size="7" fill="#FFFFFF" font-weight="700" text-anchor="middle">!</text>
+          </g>
+          
+          <!-- Retroactive flow - minimal curved arrow -->
+          <g class="retroactive-flow">
+            <path d="M 200 240 Q 250 220, 280 260" stroke="#00B5E9" stroke-width="2" fill="none" stroke-dasharray="3,3" opacity="0.4" class="retro-path" />
+            <path d="M 275 258 L 280 260 L 275 262" stroke="#00B5E9" stroke-width="2" fill="none" opacity="0.4" class="retro-arrow" />
+          </g>
+          
+          <!-- Retroactive spec - minimal -->
+          <g class="retroactive-spec">
+            <rect x="250" y="240" width="80" height="80" rx="12" fill="#FFFFFF" stroke="#00B5E9" stroke-width="2" class="spec-retro" />
+            <rect x="260" y="260" width="60" height="2" rx="1" fill="#00B5E9" opacity="0.3" />
+            <rect x="260" y="270" width="50" height="2" rx="1" fill="#00B5E9" opacity="0.25" />
+            <rect x="260" y="280" width="45" height="2" rx="1" fill="#00B5E9" opacity="0.2" />
+            <rect x="260" y="290" width="40" height="2" rx="1" fill="#00B5E9" opacity="0.15" />
+            <rect x="260" y="300" width="35" height="2" rx="1" fill="#00B5E9" opacity="0.1" />
+            <!-- Minimal clock -->
+            <circle cx="325" cy="280" r="5" fill="#00B5E9" opacity="0.5" />
+            <line x1="325" y1="280" x2="325" y2="277" stroke="#00B5E9" stroke-width="1.5" opacity="0.5" />
+            <line x1="325" y1="280" x2="327" y2="280" stroke="#00B5E9" stroke-width="1.5" opacity="0.5" />
+          </g>
+        </svg>
+
+        <!-- Variant B (default): changed-mind Linear-minimal idea -->
+        <svg viewBox="0 0 400 480" xmlns="http://www.w3.org/2000/svg" class="w-full h-full retro-variant retro-b">
+          <defs>
+            <marker id="retro2-arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+              <path d="M 0 0 L 8 4 L 0 8 Z" fill="#DADADA" />
+            </marker>
+          </defs>
+
+          <!-- Neutral track -->
+          <line x1="90" y1="240" x2="310" y2="240" stroke="#E5E5E5" stroke-width="1.25" stroke-linecap="round" class="retro2-track" />
+
+          <!-- Hotfix code chip (happens now) -->
+          <g class="retro2-code">
+            <rect x="236" y="214" width="104" height="52" rx="14" fill="#1A1A1A" stroke="#E5E5E5" stroke-width="1.25" />
+            <circle cx="252" cy="232" r="1.6" fill="#00B5E9" opacity="0.9" />
+            <rect x="258" y="231" width="66" height="2" rx="1" fill="#00B5E9" opacity="0.7" />
+            <rect x="252" y="246" width="52" height="2" rx="1" fill="#00B5E9" opacity="0.55" />
+            <rect x="252" y="256" width="42" height="2" rx="1" fill="#00B5E9" opacity="0.4" />
+          </g>
+
+          <!-- Retroactive link back to spec -->
+          <path d="M 236 232 C 205 205, 170 202, 128 220" stroke="#DADADA" stroke-width="1.25" fill="none" marker-end="url(#retro2-arrow)" class="retro2-backpath" />
+
+          <!-- Spec doc (created after) -->
+          <g class="retro2-doc">
+            <rect x="86" y="206" width="88" height="68" rx="12" fill="#FFFFFF" stroke="#E5E5E5" stroke-width="1.25" />
+            <rect x="100" y="228" width="60" height="2" rx="1" fill="#BDBDBD" opacity="0.55" />
+            <rect x="100" y="242" width="48" height="2" rx="1" fill="#BDBDBD" opacity="0.4" />
+            <rect x="100" y="256" width="36" height="2" rx="1" fill="#BDBDBD" opacity="0.3" />
+          </g>
+
+          <!-- Tiny stamp (documentation) -->
+          <g class="retro2-stamp">
+            <circle cx="170" cy="212" r="4" fill="#00B5E9" opacity="0.55" />
+            <path d="M 168.2 212 L 170 213.8 L 172.4 210.6" stroke="#FFFFFF" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+          </g>
+        </svg>
+
+        <!-- Variant C (default): changed-mind again (timeline + delayed dots) -->
+        <svg viewBox="0 0 400 480" xmlns="http://www.w3.org/2000/svg" class="w-full h-full retro-variant retro-c">
+          <defs>
+            <marker id="retro3-arrow" markerWidth="7" markerHeight="7" refX="5.5" refY="3.5" orient="auto">
+              <path d="M 0 0 L 7 3.5 L 0 7 Z" fill="#DADADA" opacity="0.9" />
+            </marker>
+          </defs>
+
+          <!-- Minimal baseline -->
+          <line x1="84" y1="260" x2="316" y2="260" stroke="#E5E5E5" stroke-width="1.25" stroke-linecap="round" />
+
+          <!-- Now: hotfix code chip (right) -->
+          <g class="retro3-now">
+            <rect x="236" y="224" width="104" height="56" rx="14" fill="#1A1A1A" stroke="#E5E5E5" stroke-width="1.25" />
+            <circle cx="252" cy="242" r="1.6" fill="#00B5E9" opacity="0.9" />
+            <rect x="258" y="241" width="62" height="2" rx="1" fill="#00B5E9" opacity="0.7" />
+            <rect x="252" y="256" width="48" height="2" rx="1" fill="#00B5E9" opacity="0.55" />
+            <rect x="252" y="268" width="38" height="2" rx="1" fill="#00B5E9" opacity="0.4" />
+          </g>
+
+          <!-- Time passes (dots) -->
+          <g class="retro3-dots">
+            <circle class="d1" cx="200" cy="260" r="1.8" fill="#BDBDBD" />
+            <circle class="d2" cx="186" cy="260" r="1.8" fill="#BDBDBD" />
+            <circle class="d3" cx="172" cy="260" r="1.8" fill="#BDBDBD" />
+          </g>
+
+          <!-- Retro link back (draws) -->
+          <path d="M 236 240 C 205 206, 168 206, 126 236" stroke="#DADADA" stroke-width="1.25" fill="none" marker-end="url(#retro3-arrow)" class="retro3-back" />
+
+          <!-- Later: spec doc appears (left) -->
+          <g class="retro3-spec">
+            <rect x="84" y="220" width="92" height="74" rx="12" fill="#FFFFFF" stroke="#E5E5E5" stroke-width="1.25" />
+            <rect x="100" y="244" width="60" height="2" rx="1" fill="#BDBDBD" opacity="0.55" />
+            <rect x="100" y="260" width="48" height="2" rx="1" fill="#BDBDBD" opacity="0.4" />
+            <rect x="100" y="276" width="38" height="2" rx="1" fill="#BDBDBD" opacity="0.3" />
+          </g>
+
+          <!-- Stamp -->
+          <g class="retro3-stamp">
+            <circle cx="168" cy="232" r="4" fill="#00B5E9" opacity="0.55" />
+            <path d="M 166.2 232 L 168 233.8 L 170.4 230.6" stroke="#FFFFFF" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+          </g>
+        </svg>
+
+        <!-- Variant D (default): from-scratch Linear-minimal -->
+        <svg viewBox="0 0 400 480" xmlns="http://www.w3.org/2000/svg" class="w-full h-full retro-variant retro-d">
+          <defs>
+            <marker id="retro4-arrow" markerWidth="7" markerHeight="7" refX="5.5" refY="3.5" orient="auto">
+              <path d="M 0 0 L 7 3.5 L 0 7 Z" fill="#DADADA" opacity="0.9" />
+            </marker>
+          </defs>
+
+          <!-- Track -->
+          <line x1="84" y1="260" x2="316" y2="260" stroke="#E5E5E5" stroke-width="1.25" stroke-linecap="round" class="retro4-track" />
+
+          <!-- Now: hotfix chip -->
+          <g class="retro4-now">
+            <rect x="236" y="222" width="104" height="56" rx="14" fill="#1A1A1A" stroke="#E5E5E5" stroke-width="1.25" />
+            <circle cx="252" cy="240" r="1.6" fill="#00B5E9" opacity="0.9" />
+            <rect x="258" y="239" width="62" height="2" rx="1" fill="#00B5E9" opacity="0.7" />
+            <rect x="252" y="254" width="48" height="2" rx="1" fill="#00B5E9" opacity="0.55" />
+            <rect x="252" y="266" width="38" height="2" rx="1" fill="#00B5E9" opacity="0.4" />
+          </g>
+
+          <!-- Backfill path -->
+          <path d="M 236 238 C 206 206, 170 206, 126 236" stroke="#DADADA" stroke-width="1.25" fill="none" marker-end="url(#retro4-arrow)" class="retro4-back" />
+
+          <!-- Spec doc appears -->
+          <g class="retro4-doc">
+            <rect x="84" y="220" width="92" height="74" rx="12" fill="#FFFFFF" stroke="#E5E5E5" stroke-width="1.25" />
+            <rect x="100" y="244" width="60" height="2" rx="1" fill="#BDBDBD" opacity="0.55" />
+            <rect x="100" y="260" width="48" height="2" rx="1" fill="#BDBDBD" opacity="0.4" />
+            <rect x="100" y="276" width="38" height="2" rx="1" fill="#BDBDBD" opacity="0.3" />
+          </g>
+
+          <!-- Stamp -->
+          <g class="retro4-stamp">
+            <circle cx="168" cy="232" r="4" fill="#00B5E9" opacity="0.55" />
+            <path d="M 166.2 232 L 168 233.8 L 170.4 230.6" stroke="#FFFFFF" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+          </g>
+        </svg>
+
+        <!-- Variant E (default): based on first + second (A + B) -->
+        <svg viewBox="0 0 400 480" xmlns="http://www.w3.org/2000/svg" class="w-full h-full retro-variant retro-e">
+          <defs>
+            <marker id="retro5-arrow" markerWidth="7" markerHeight="7" refX="5.5" refY="3.5" orient="auto">
+              <path d="M 0 0 L 7 3.5 L 0 7 Z" fill="#DADADA" opacity="0.9" />
+            </marker>
+          </defs>
+
+          <!-- Subtle timeline (from A) -->
+          <line x1="200" y1="170" x2="200" y2="330" stroke="#00B5E9" stroke-width="2" stroke-linecap="round" opacity="0.12" class="retro5-timeline" />
+
+          <!-- Now: hotfix chip (Linear style, from B) -->
+          <g class="retro5-now">
+            <rect x="228" y="206" width="112" height="60" rx="14" fill="#1A1A1A" stroke="#E5E5E5" stroke-width="1.25" />
+            <circle cx="246" cy="228" r="1.6" fill="#00B5E9" opacity="0.9" />
+            <rect x="252" y="227" width="74" height="2" rx="1" fill="#00B5E9" opacity="0.7" />
+            <rect x="246" y="244" width="56" height="2" rx="1" fill="#00B5E9" opacity="0.55" />
+            <rect x="246" y="258" width="44" height="2" rx="1" fill="#00B5E9" opacity="0.4" />
+            <!-- tiny ! -->
+            <circle cx="332" cy="216" r="4" fill="#00B5E9" opacity="0.2" />
+            <circle cx="332" cy="216" r="3" fill="#00B5E9" />
+            <text x="332" y="219" font-family="Open Runde, Inter, sans-serif" font-size="7" fill="#FFFFFF" font-weight="700" text-anchor="middle">!</text>
+          </g>
+
+          <!-- Backfill curve (hybrid) -->
+          <path d="M 228 226 C 205 196, 170 196, 124 224" stroke="#DADADA" stroke-width="1.25" fill="none" marker-end="url(#retro5-arrow)" class="retro5-back" />
+
+          <!-- Spec doc appears (from B) -->
+          <g class="retro5-doc">
+            <rect x="78" y="208" width="96" height="76" rx="12" fill="#FFFFFF" stroke="#E5E5E5" stroke-width="1.25" />
+            <rect x="94" y="232" width="64" height="2" rx="1" fill="#BDBDBD" opacity="0.55" />
+            <rect x="94" y="248" width="52" height="2" rx="1" fill="#BDBDBD" opacity="0.4" />
+            <rect x="94" y="264" width="40" height="2" rx="1" fill="#BDBDBD" opacity="0.3" />
+          </g>
+
+          <!-- Stamp (doc complete) -->
+          <g class="retro5-stamp">
+            <circle cx="170" cy="216" r="4" fill="#00B5E9" opacity="0.55" />
+            <path d="M 168.2 216 L 170 217.8 L 172.4 214.6" stroke="#FFFFFF" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+          </g>
+        </svg>
+
+        <!-- Variant F: re-made Linear-minimal -->
+        <svg viewBox="0 0 400 480" xmlns="http://www.w3.org/2000/svg" class="w-full h-full retro-variant retro-f">
+          <defs>
+            <marker id="retro6-arrow" markerWidth="7" markerHeight="7" refX="5.5" refY="3.5" orient="auto">
+              <path d="M 0 0 L 7 3.5 L 0 7 Z" fill="#DADADA" opacity="0.9" />
+            </marker>
+          </defs>
+
+          <!-- Code chip (hotfix) -->
+          <g class="retro6-now">
+            <rect x="232" y="210" width="112" height="62" rx="14" fill="#1A1A1A" stroke="#E5E5E5" stroke-width="1.25" />
+            <circle cx="250" cy="232" r="1.6" fill="#00B5E9" opacity="0.9" />
+            <rect x="256" y="231" width="72" height="2" rx="1" fill="#00B5E9" opacity="0.7" />
+            <rect x="250" y="248" width="54" height="2" rx="1" fill="#00B5E9" opacity="0.55" />
+            <rect x="250" y="262" width="44" height="2" rx="1" fill="#00B5E9" opacity="0.4" />
+          </g>
+
+          <!-- Backfill curve to spec -->
+          <path d="M 232 232 C 205 202, 168 202, 120 226" stroke="#DADADA" stroke-width="1.25" fill="none" marker-end="url(#retro6-arrow)" class="retro6-back" />
+
+          <!-- Spec doc (appears after) -->
+          <g class="retro6-doc">
+            <rect x="72" y="210" width="104" height="78" rx="12" fill="#FFFFFF" stroke="#E5E5E5" stroke-width="1.25" />
+            <rect x="88" y="236" width="72" height="2" rx="1" fill="#BDBDBD" opacity="0.55" />
+            <rect x="88" y="252" width="56" height="2" rx="1" fill="#BDBDBD" opacity="0.4" />
+            <rect x="88" y="268" width="42" height="2" rx="1" fill="#BDBDBD" opacity="0.3" />
+          </g>
+
+          <!-- Stamp -->
+          <g class="retro6-stamp">
+            <circle cx="170" cy="218" r="4" fill="#00B5E9" opacity="0.55" />
+            <path d="M 168.2 218 L 170 219.8 L 172.4 216.6" stroke="#FFFFFF" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+          </g>
+        </svg>
+
+        <!-- Variant G (default): refined ultra-minimal Linear-style -->
+        <svg viewBox="0 0 400 480" xmlns="http://www.w3.org/2000/svg" class="w-full h-full retro-variant retro-g">
+          <defs>
+            <marker id="retro7-arrow" markerWidth="5" markerHeight="5" refX="4.5" refY="2.5" orient="auto">
+              <path d="M 0 0 L 5 2.5 L 0 5 Z" fill="#DADADA" />
+            </marker>
+          </defs>
+
+          <!-- Minimal horizontal track -->
+          <line x1="110" y1="240" x2="290" y2="240" stroke="#E5E5E5" stroke-width="0.75" stroke-linecap="round" class="retro7-track" />
+
+          <!-- Hotfix code chip (right, simplified) -->
+          <g class="retro7-code">
+            <rect x="244" y="212" width="78" height="48" rx="8" fill="#1A1A1A" stroke="#E5E5E5" stroke-width="0.75" />
+            <circle cx="258" cy="228" r="1.2" fill="#00B5E9" opacity="0.85" />
+            <rect x="264" y="227" width="46" height="1.2" rx="0.6" fill="#00B5E9" opacity="0.6" />
+            <rect x="258" y="238" width="36" height="1.2" rx="0.6" fill="#00B5E9" opacity="0.45" />
+          </g>
+
+          <!-- Smooth curved arrow -->
+          <path d="M 244 228 C 220 206, 192 206, 164 224" stroke="#DADADA" stroke-width="0.75" fill="none" stroke-linecap="round" marker-end="url(#retro7-arrow)" class="retro7-arrow" />
+
+          <!-- Spec document (left, minimal) -->
+          <g class="retro7-spec">
+            <rect x="82" y="214" width="74" height="56" rx="8" fill="#FFFFFF" stroke="#E5E5E5" stroke-width="0.75" />
+            <rect x="94" y="234" width="50" height="1.2" rx="0.6" fill="#BDBDBD" opacity="0.45" />
+            <rect x="94" y="246" width="38" height="1.2" rx="0.6" fill="#BDBDBD" opacity="0.35" />
+          </g>
+
+          <!-- Subtle check mark -->
+          <g class="retro7-check">
+            <circle cx="150" cy="218" r="3" fill="#00B5E9" opacity="0.5" />
+            <path d="M 148.6 218 L 150 219.2 L 152.2 216.8" stroke="#FFFFFF" stroke-width="1" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+          </g>
+        </svg>
+
+        <!-- Variant H (default): fresh perspective - gap filling retroactively -->
+        <svg viewBox="0 0 400 480" xmlns="http://www.w3.org/2000/svg" class="w-full h-full retro-variant retro-h">
+          <defs>
+            <marker id="retro8-arrow" markerWidth="4" markerHeight="4" refX="3.5" refY="2" orient="auto">
+              <path d="M 0 0 L 4 2 L 0 4 Z" fill="#DADADA" />
+            </marker>
+          </defs>
+
+          <!-- Timeline baseline -->
+          <line x1="100" y1="240" x2="300" y2="240" stroke="#E5E5E5" stroke-width="0.5" stroke-linecap="round" opacity="0.6" />
+
+          <!-- Hotfix code (appears first - happened now) -->
+          <g class="retro8-code">
+            <rect x="252" y="216" width="72" height="44" rx="6" fill="#1A1A1A" stroke="#E5E5E5" stroke-width="0.5" />
+            <circle cx="264" cy="230" r="1" fill="#00B5E9" opacity="0.8" />
+            <rect x="270" y="229" width="44" height="1" rx="0.5" fill="#00B5E9" opacity="0.6" />
+            <rect x="264" y="238" width="34" height="1" rx="0.5" fill="#00B5E9" opacity="0.45" />
+          </g>
+
+          <!-- Gap/void (missing spec - appears briefly) -->
+          <g class="retro8-gap">
+            <rect x="140" y="218" width="68" height="44" rx="6" fill="#FAFAFA" stroke="#E5E5E5" stroke-width="0.5" stroke-dasharray="2,2" opacity="0.5" />
+          </g>
+
+          <!-- Retroactive flow (backward arrow) -->
+          <path d="M 252 230 C 230 210, 200 210, 172 228" stroke="#DADADA" stroke-width="0.5" fill="none" stroke-linecap="round" marker-end="url(#retro8-arrow)" class="retro8-flow" />
+
+          <!-- Spec document (fills gap retroactively) -->
+          <g class="retro8-spec">
+            <rect x="140" y="218" width="68" height="44" rx="6" fill="#FFFFFF" stroke="#E5E5E5" stroke-width="0.5" />
+            <rect x="152" y="232" width="44" height="1" rx="0.5" fill="#BDBDBD" opacity="0.4" />
+            <rect x="152" y="242" width="34" height="1" rx="0.5" fill="#BDBDBD" opacity="0.3" />
+          </g>
+
+          <!-- Retroactive indicator (small badge) -->
+          <g class="retro8-indicator">
+            <circle cx="172" cy="210" r="2.5" fill="#00B5E9" opacity="0.4" />
+            <path d="M 171.2 210 L 172.5 211.2 L 174.2 209" stroke="#FFFFFF" stroke-width="0.7" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+          </g>
+        </svg>
+
+        <!-- Variant I (default): ultra-minimal from scratch -->
+        <svg viewBox="0 0 400 480" xmlns="http://www.w3.org/2000/svg" class="w-full h-full retro-variant retro-i">
+          <!-- Code block (right) -->
+          <g class="retro9-code">
+            <rect x="260" y="220" width="64" height="40" rx="4" fill="#1A1A1A" stroke="#E5E5E5" stroke-width="0.5" />
+            <circle cx="270" cy="232" r="0.8" fill="#00B5E9" opacity="0.75" />
+            <rect x="275" y="231.5" width="38" height="0.8" rx="0.4" fill="#00B5E9" opacity="0.55" />
+            <rect x="270" y="240" width="28" height="0.8" rx="0.4" fill="#00B5E9" opacity="0.4" />
+          </g>
+
+          <!-- Connecting line (retroactive flow) -->
+          <line x1="260" y1="240" x2="156" y2="240" stroke="#DADADA" stroke-width="0.5" stroke-linecap="round" class="retro9-line" />
+
+          <!-- Spec document (left) -->
+          <g class="retro9-spec">
+            <rect x="148" y="220" width="60" height="40" rx="4" fill="#FFFFFF" stroke="#E5E5E5" stroke-width="0.5" />
+            <rect x="158" y="232" width="40" height="0.8" rx="0.4" fill="#BDBDBD" opacity="0.35" />
+            <rect x="158" y="240" width="30" height="0.8" rx="0.4" fill="#BDBDBD" opacity="0.25" />
+          </g>
+
+          <!-- Minimal dot indicator -->
+          <circle cx="156" cy="212" r="2" fill="#00B5E9" opacity="0.4" class="retro9-dot" />
+        </svg>
+
+        <!-- Variant J (default): Restream.io style - dynamic, floating, modern -->
+        <svg viewBox="0 0 400 480" xmlns="http://www.w3.org/2000/svg" class="w-full h-full retro-variant retro-j">
+          <defs>
+            <linearGradient id="retro10-code-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#1A1A1A;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#2A2A2A;stop-opacity:1" />
+            </linearGradient>
+            <linearGradient id="retro10-spec-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#FAFAFA;stop-opacity:1" />
+            </linearGradient>
+            <filter id="retro10-glow">
+              <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+              <feMerge>
+                <feMergeNode in="coloredBlur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+          </defs>
+
+          <!-- Floating particles -->
+          <g class="retro10-particles">
+            <circle cx="200" cy="200" r="2" fill="#00B5E9" opacity="0.3" class="p1" />
+            <circle cx="220" cy="180" r="1.5" fill="#00B5E9" opacity="0.25" class="p2" />
+            <circle cx="180" cy="190" r="1.8" fill="#00B5E9" opacity="0.2" class="p3" />
+          </g>
+
+          <!-- Hotfix code block (right, floating) -->
+          <g class="retro10-code">
+            <rect x="248" y="214" width="76" height="48" rx="8" fill="url(#retro10-code-grad)" stroke="#E5E5E5" stroke-width="1" />
+            <circle cx="262" cy="230" r="1.2" fill="#00B5E9" opacity="0.9" />
+            <rect x="270" y="229" width="46" height="1.2" rx="0.6" fill="#00B5E9" opacity="0.7" />
+            <rect x="262" y="240" width="36" height="1.2" rx="0.6" fill="#00B5E9" opacity="0.55" />
+            <rect x="262" y="250" width="28" height="1.2" rx="0.6" fill="#00B5E9" opacity="0.4" />
+          </g>
+
+          <!-- Curved flow line (retroactive connection) -->
+          <path d="M 248 230 C 220 210, 190 210, 160 228" stroke="#00B5E9" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.4" class="retro10-flow" />
+
+          <!-- Spec document (left, floating) -->
+          <g class="retro10-spec">
+            <rect x="76" y="214" width="72" height="48" rx="8" fill="url(#retro10-spec-grad)" stroke="#E5E5E5" stroke-width="1" />
+            <rect x="88" y="230" width="48" height="1.2" rx="0.6" fill="#BDBDBD" opacity="0.5" />
+            <rect x="88" y="240" width="38" height="1.2" rx="0.6" fill="#BDBDBD" opacity="0.4" />
+            <rect x="88" y="250" width="30" height="1.2" rx="0.6" fill="#BDBDBD" opacity="0.3" />
+          </g>
+
+          <!-- Glow effect (completion indicator) -->
+          <g class="retro10-glow">
+            <circle cx="160" cy="208" r="6" fill="#00B5E9" opacity="0.2" filter="url(#retro10-glow)" />
+            <circle cx="160" cy="208" r="3" fill="#00B5E9" opacity="0.6" />
+            <path d="M 158.5 208 L 160 209.5 L 162.5 206.5" stroke="#FFFFFF" stroke-width="1" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+          </g>
+        </svg>
+
+        <!-- Variant K (default): better and simple - clean, smooth, clear -->
+        <svg viewBox="0 0 400 480" xmlns="http://www.w3.org/2000/svg" class="w-full h-full retro-variant retro-k">
+          <defs>
+            <marker id="retro11-arrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+              <path d="M 0 0 L 6 3 L 0 6 Z" fill="#DADADA" />
+            </marker>
+          </defs>
+
+          <!-- Hotfix code block (right) -->
+          <g class="retro11-code">
+            <rect x="250" y="218" width="70" height="44" rx="6" fill="#1A1A1A" stroke="#E5E5E5" stroke-width="0.75" />
+            <circle cx="262" cy="232" r="1" fill="#00B5E9" opacity="0.85" />
+            <rect x="268" y="231" width="44" height="1" rx="0.5" fill="#00B5E9" opacity="0.65" />
+            <rect x="262" y="240" width="34" height="1" rx="0.5" fill="#00B5E9" opacity="0.5" />
+            <rect x="262" y="248" width="26" height="1" rx="0.5" fill="#00B5E9" opacity="0.4" />
+          </g>
+
+          <!-- Retroactive arrow (curved, going back) -->
+          <path d="M 250 230 C 225 212, 195 212, 170 228" stroke="#DADADA" stroke-width="0.75" fill="none" stroke-linecap="round" marker-end="url(#retro11-arrow)" class="retro11-arrow" />
+
+          <!-- Spec document (left) -->
+          <g class="retro11-spec">
+            <rect x="80" y="218" width="68" height="44" rx="6" fill="#FFFFFF" stroke="#E5E5E5" stroke-width="0.75" />
+            <rect x="92" y="232" width="44" height="1" rx="0.5" fill="#BDBDBD" opacity="0.45" />
+            <rect x="92" y="240" width="34" height="1" rx="0.5" fill="#BDBDBD" opacity="0.35" />
+            <rect x="92" y="248" width="26" height="1" rx="0.5" fill="#BDBDBD" opacity="0.25" />
+          </g>
+
+          <!-- Check indicator -->
+          <g class="retro11-check">
+            <circle cx="170" cy="212" r="2.5" fill="#00B5E9" opacity="0.5" />
+            <path d="M 169 212 L 170.5 213.5 L 172.5 210.5" stroke="#FFFFFF" stroke-width="0.9" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+          </g>
+        </svg>
+      </div>
+      <div class="flex flex-col gap-3 flex-1 justify-center items-center">
+        <h3 class="flex flex-col justify-center w-[216px] h-[61px] text-center text-[#181925] font-open text-[24px] font-medium leading-[32px] tracking-[-0.42px]">Retroactive<br/>Spec Creation</h3>
+        <p class="flex flex-col justify-center w-[346.055px] h-[61px] text-center text-[#666] font-open text-base font-normal leading-6 tracking-[-0.32px]">For hot fixes, allow documenting<br/>what was done after the fact</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- FAQ Section Copy (Bottom) -->
+  <div id="pricing" class="mt-48 flex flex-col items-center gap-6 self-stretch w-full px-4 sm:px-0" style="color: rgba(237, 237, 237, 1);">
+    <!-- Label -->
+    <div class="inline-flex items-center gap-2 py-[6.5px] px-3 rounded-[12px] bg-[#F7F7F7]">
+      <span class="text-xs font-medium leading-normal text-[#777] font-open">PRICING</span>
+    </div>
+
+    <!-- Title -->
+    <h2 class="self-stretch text-center text-[#181925] font-open text-[36px] font-medium leading-[44px] tracking-[-0.64px]">
+      Simplified pricing
+    </h2>
+
+    <!-- Description -->
+    <p class="self-stretch text-center text-[#777] font-open text-base font-normal leading-6 tracking-[-0.32px] -mt-2">
+      Our pricing is simple and transparent;<br>you just pay for value and scalability.
+    </p>
+
+    <!-- Pricing Options Menu -->
+    <div class="inline-flex items-center gap-1 py-[4px] pl-[4px] pr-[4px] rounded-[99px] border border-[#EDEDED] bg-white" style="color: rgba(24, 25, 37, 1); border-color: rgba(247, 247, 247, 1);">
+      <button class="pricing-option-btn px-4 py-2 rounded-[99px] text-sm font-medium transition-colors" data-option="monthly">Monthly</button>
+      <button class="pricing-option-btn px-4 py-2 rounded-[99px] text-sm font-medium transition-colors flex items-center gap-1" data-option="annually">
+        <span>Annually</span>
+        <span class="flex h-5 py-[1px] justify-center items-start gap-1">
+          <span class="flex h-[18px] pt-[3px] pl-[4px] pr-[4px] pb-[3px] justify-center items-center flex-shrink-0 rounded-[4px] border border-transparent bg-[rgba(0,181,233,0.08)] text-xs font-medium text-[#00B5E9]">-25%</span>
+        </span>
+      </button>
+      <button class="pricing-option-btn px-4 py-2 rounded-[99px] text-sm font-medium transition-colors" data-option="lifetime">Lifetime</button>
+    </div>
+
+    <!-- Pricing Card - Dynamic Single Plan -->
+    <div class="w-full max-w-[400px]">
+      <div class="rounded-[24px] border border-[#EDEDED] bg-white p-8 flex flex-col gap-6">
+        <!-- Title Section -->
+        <div class="flex items-center justify-between gap-2">
+          <h2 class="text-lg md:text-xl font-medium text-[#181925] font-open">
+            <span class="font-normal pricing-title" style="color: rgba(0, 181, 233, 1);">
+              Starter
+            </span>
+          </h2>
+          <span id="save-25-label" class="flex pt-[4px] pl-[6px] pr-[6px] pb-[4px] justify-center items-center flex-shrink-0 rounded-[6px] border border-transparent bg-[rgba(0,181,233,0.08)] text-xs font-medium text-[#00B5E9]" style="display: none;">Save 25%</span>
+        </div>
+        
+        <!-- Price Section - Top -->
+        <div class="flex flex-col items-start gap-2">
+          <p class="text-sm text-[#666] font-open pricing-period">Per month</p>
+          <p class="text-4xl font-medium text-[#181925] font-open pricing-amount">$9</p>
+        </div>
+        
+        <!-- Features Section -->
+        <div class="flex flex-col justify-center items-start gap-4">
+          <div class="flex items-start justify-start gap-[10px]">
+            <div class="text-[#666] mt-0.5">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="none" class="w-[18px] h-[18px]">
+                <g clip-path="url(#clip0_1372_4863)">
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M5.99221 0.254761C5.83438 0.254761 5.6795 0.297498 5.54401 0.378434C5.52517 0.389684 5.5071 0.40216 5.48991 0.415783C5.34618 0.529664 5.24919 0.692298 5.21733 0.872883C5.18598 1.05054 5.21978 1.23345 5.31236 1.38806C6.11673 2.78339 6.43297 4.50267 6.01097 5.83147C5.9225 6.11004 5.71726 6.23812 5.49636 6.25177C5.2661 6.26599 5.00259 6.15372 4.83975 5.87822C4.74339 5.71521 4.65654 5.54622 4.57979 5.37206C4.5231 5.24341 4.41486 5.14457 4.2816 5.09976C4.14835 5.05496 4.00238 5.06832 3.87948 5.13658C3.20385 5.51182 2.64393 6.06497 2.26049 6.73598C1.87706 7.40699 1.68477 8.17021 1.7045 8.9428L1.70474 8.95026C1.7594 10.2999 2.22455 11.5107 3.13565 12.3841C4.04794 13.2586 5.3554 13.7453 6.99911 13.7453C8.65008 13.7453 9.95548 13.23 10.8639 12.3448C11.7693 11.4624 12.2361 10.2556 12.2934 8.95201C12.4278 5.85151 10.2521 2.14663 6.41301 0.362733C6.28422 0.29198 6.13949 0.254761 5.99221 0.254761Z" fill="#979797"/>
+                </g>
+                <defs>
+                  <clipPath id="clip0_1372_4863">
+                    <rect width="14" height="14" fill="white"/>
+                  </clipPath>
+                </defs>
+              </svg>
+            </div>
+            <span class="text-sm text-[#666] font-open">Visual spec-to-code traceability</span>
+          </div>
+          
+          <div class="flex items-end justify-start gap-[10px]">
+            <div class="text-[#666] mt-0.5">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="none" class="w-[18px] h-[18px]">
+                <g clip-path="url(#clip0_1372_4743)">
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M0.627238 1.35002C0.780238 0.694018 1.36424 0.200018 2.13924 0.290018H2.14924C3.55924 0.480018 4.88624 0.959018 6.00424 1.68302V7.50302C6.00224 7.54302 6.00124 7.58402 6.00124 7.62502V10.91L5.98724 10.917C5.87206 10.8597 5.76538 10.7866 5.67024 10.7C5.61459 10.6498 5.56024 10.5981 5.50724 10.545C5.41487 10.4469 5.30877 10.3627 5.19224 10.295C4.26524 9.75702 2.87924 9.14902 1.81924 9.03202C1.15924 8.97002 0.737238 8.44302 0.627238 7.96202C0.113837 5.78792 0.113837 3.52412 0.627238 1.35002ZM7.25324 5.45802V1.68302C8.36924 0.959018 9.69724 0.479018 11.1082 0.290018L11.1182 0.288018C11.8922 0.200018 12.4762 0.693018 12.6282 1.34902C13.1452 3.57502 13.1382 5.73902 12.6282 7.96102C12.5182 8.44202 12.0982 8.96902 11.4362 9.03102C11.2899 9.04736 11.1444 9.07072 11.0002 9.10102V7.62602C11.0003 7.18745 10.8849 6.75659 10.6658 6.3767C10.4467 5.9968 10.1315 5.68123 9.75183 5.46167C9.37218 5.2421 8.94145 5.12628 8.50289 5.12581C8.06432 5.12535 7.63335 5.23926 7.25324 5.45802ZM7.24924 11.72V7.62502C7.24924 7.2935 7.38093 6.97556 7.61535 6.74113C7.84978 6.50671 8.16772 6.37502 8.49924 6.37502C8.83076 6.37502 9.1487 6.50671 9.38312 6.74113C9.61754 6.97556 9.74924 7.2935 9.74924 7.62502V10.248C11.8342 10.248 13.6312 11.429 13.7532 13.261C13.7702 13.521 13.5492 13.721 13.2882 13.721H6.05224C5.77024 13.721 5.53924 13.485 5.61724 13.214C5.69831 12.9298 5.84209 12.6673 6.03799 12.446C6.2339 12.2246 6.47694 12.05 6.74924 11.935L7.24924 11.72Z" fill="#979797"/>
+                </g>
+                <defs>
+                  <clipPath id="clip0_1372_4743">
+                    <rect width="14" height="14" fill="white"/>
+                  </clipPath>
+                </defs>
+              </svg>
+            </div>
+            <span class="text-sm text-[#666] font-open">Multi-agent workflow orchestration</span>
+          </div>
+          
+          <div class="flex items-end justify-start gap-[10px]">
+            <div class="text-[#666] mt-0.5">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="none" class="w-[18px] h-[18px]">
+                <g clip-path="url(#clip0_1372_4962)">
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M13.022 2.58399C13.4477 1.61095 12.4619 0.669728 11.4867 1.09048C10.9392 1.32669 10.3946 1.59802 9.73302 1.959C9.17092 1.37052 8.7078 0.920309 8.22822 0.509748C7.42774 -0.175526 6.23038 0.433763 6.35343 1.48029C6.41075 1.96773 6.50184 2.46372 6.63513 3.04263C6.68267 3.24914 6.58264 3.46218 6.39303 3.55682C5.71222 3.89661 5.16784 4.20347 4.65098 4.53837C3.76173 5.11455 3.9972 6.45435 5.03786 6.65377C5.67954 6.77673 6.33775 6.84383 7.17253 6.87837C7.19461 7.73599 7.25502 8.40645 7.37981 9.05671C7.57805 10.0897 8.90687 10.3029 9.47988 9.42081C9.82685 8.88672 10.141 8.33559 10.4927 7.65054C10.5883 7.46445 10.7987 7.36703 11.0027 7.41342C11.5606 7.54027 12.0405 7.62794 12.5075 7.68491C13.5667 7.81412 14.1787 6.59566 13.484 5.78562C13.0821 5.31691 12.6485 4.86328 12.0919 4.31788C12.4916 3.66941 12.7826 3.1313 13.022 2.58399ZM5.98305 8.05065C5.64893 8.01754 5.33074 7.97498 5.01601 7.92041L0.469498 12.4699C0.1767 12.7629 0.176854 13.2377 0.469842 13.5305C0.762831 13.8233 1.2377 13.8232 1.5305 13.5302L6.09419 8.96355C6.04643 8.66683 6.01015 8.36578 5.98305 8.05065Z" fill="#979797" style="width: 18px; height: 18px;"/>
+                </g>
+                <defs>
+                  <clipPath id="clip0_1372_4962">
+                    <rect width="14" height="14" fill="white"/>
+                  </clipPath>
+                </defs>
+              </svg>
+            </div>
+            <span class="text-sm text-[#666] font-open">Automated drift detection</span>
+          </div>
+          
+          <div class="flex items-end justify-start gap-[10px]">
+            <div class="text-[#666] mt-0.5">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="none" class="w-[18px] h-[18px]">
+                <g clip-path="url(#clip0_1372_4791)">
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M6.7517 1.5C5.9027 1.5 5.0587 1.58 4.2117 1.682C3.67978 1.75131 3.18694 1.99851 2.8133 2.3834C2.43967 2.7683 2.2072 3.26825 2.1537 3.802C2.0537 4.86 1.9707 5.922 1.9707 7C1.9707 7.883 2.0267 8.756 2.1007 9.625H11.4027C11.4777 8.756 11.5327 7.883 11.5327 7C11.5327 6.833 11.5317 6.667 11.5277 6.5C11.5233 6.30109 11.5981 6.10858 11.7357 5.96484C11.8733 5.82109 12.0623 5.73788 12.2612 5.7335C12.4601 5.72912 12.6526 5.80394 12.7964 5.9415C12.9401 6.07906 13.0233 6.26809 13.0277 6.467C13.0317 6.644 13.0337 6.821 13.0337 7C13.0337 8.15 12.9457 9.27 12.8437 10.34C12.7578 11.2142 12.3776 12.0333 11.7654 12.6632C11.1531 13.293 10.3451 13.6963 9.4737 13.807C8.6037 13.913 7.6907 14 6.7517 14C5.8137 14 4.9007 13.913 4.0317 13.807C3.15994 13.6968 2.35148 13.2937 1.73883 12.6637C1.12618 12.0338 0.745685 11.2145 0.659703 10.34C0.558703 9.27 0.470703 8.15 0.470703 7C0.470703 5.85 0.558703 4.73 0.660703 3.66C0.746811 2.78599 1.12711 1.96711 1.73935 1.33744C2.35158 0.707766 3.15945 0.304617 4.0307 0.194C4.9007 0.087 5.8147 0 6.7527 0C7.1057 0 7.4547 0.012 7.7987 0.033C7.99735 0.0450674 8.18307 0.135553 8.315 0.28455C8.44693 0.433548 8.51427 0.628853 8.5022 0.8275C8.49014 1.02615 8.39965 1.21186 8.25065 1.3438C8.10166 1.47573 7.90635 1.54307 7.7077 1.531C7.38913 1.51016 7.07096 1.49983 6.7517 1.5ZM10.4107 0.707C11.0617 0.043 12.1887 0.093 12.9267 0.819C13.6837 1.563 13.7367 2.722 13.0447 3.378L9.4637 6.768C9.43674 6.79356 9.4037 6.8118 9.3677 6.821L7.1847 7.383C6.6747 7.514 6.1647 7 6.3007 6.493L6.8737 4.358C6.88327 4.32143 6.90223 4.28799 6.9287 4.261L10.4107 0.707Z" fill="#979797"/>
+                </g>
+                <defs>
+                  <clipPath id="clip0_1372_4791">
+                    <rect width="14" height="14" fill="white"/>
+                  </clipPath>
+                </defs>
+              </svg>
+            </div>
+            <span class="text-sm text-[#666] font-open">Natural language spec editing</span>
+          </div>
+        </div>
+        
+        <!-- CTA Buttons -->
+        <div class="flex flex-col gap-2">
+          <button class="waitlist-trigger w-full flex items-center justify-center gap-[10px] text-center font-medium transition-colors duration-200 rounded-[999px] text-white bg-primary hover:bg-[#0099CC] py-[11px] px-4 text-sm font-open shadow-[0_1px_1px_0_rgba(0,0,0,0.08),0_0_0_1px_rgba(0,0,0,0.05)]">
+            Start 14 day free trial
+          </button>
+          <button onclick="window.open('https://cal.com/sametozkale/meyn-ai-demo', '_blank', 'noopener,noreferrer')" class="w-full flex items-center justify-center text-center font-medium transition-colors duration-200 rounded-[99px] text-[#666] bg-[#F7F7F7] hover:bg-[#EDEDED] h-[40px] px-4 text-sm font-open">
+            Get a Demo
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // External form URL - Update this with your form URL
+    const FORM_REDIRECT_URL = 'https://example.com/form'; // TODO: Replace with actual form URL
+    
+    // Toast functionality - Sonner default design
+    function toast(message, type = 'success', description = '') {
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+      
+      const toastEl = document.createElement('div');
+      toastEl.className = `toast ${type}`;
+      
+      // Sonner-style icons
+      let iconSvg = '';
+      if (type === 'success') {
+        iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>';
+      } else if (type === 'error') {
+        iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+      } else if (type === 'info') {
+        iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>';
+      } else if (type === 'warning') {
+        iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+      }
+      
+      toastEl.innerHTML = `
+        <div class="toast-icon-wrapper">
+          <div class="toast-icon">${iconSvg}</div>
+        </div>
+        <div class="toast-content">
+          <div class="toast-title">${message}</div>
+          ${description ? `<div class="toast-description">${description}</div>` : ''}
+        </div>
+        <button class="toast-close" aria-label="Close">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      `;
+      
+      container.appendChild(toastEl);
+      
+      // Trigger animation
+      setTimeout(() => {
+        toastEl.classList.add('show');
+      }, 10);
+      
+      // Close button handler
+      const closeBtn = toastEl.querySelector('.toast-close');
+      closeBtn.addEventListener('click', () => {
+        removeToast(toastEl);
+      });
+      
+      // Auto remove after 5 seconds
+      let timeout = setTimeout(() => {
+        removeToast(toastEl);
+      }, 5000);
+      
+      // Pause progress bar and timeout on hover (Sonner behavior)
+      toastEl.addEventListener('mouseenter', () => {
+        clearTimeout(timeout);
+        const progressBar = toastEl.querySelector('::before');
+        if (progressBar) {
+          toastEl.style.setProperty('--progress-paused', '1');
+        }
+      });
+      
+      toastEl.addEventListener('mouseleave', () => {
+        timeout = setTimeout(() => {
+          removeToast(toastEl);
+        }, 5000);
+      });
+    }
+    
+    function removeToast(toastEl) {
+      toastEl.classList.remove('show');
+      setTimeout(() => {
+        if (toastEl.parentNode) {
+          toastEl.parentNode.removeChild(toastEl);
+        }
+      }, 350);
+    }
+    
+    // Cookie helper functions
+    function setCookie(name, value, days = 365) {
+      const date = new Date();
+      date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+      const expires = "expires=" + date.toUTCString();
+      document.cookie = name + "=" + JSON.stringify(value) + ";" + expires + ";path=/";
+    }
+
+    function getCookie(name) {
+      const nameEQ = name + "=";
+      const ca = document.cookie.split(';');
+      for (let i = 0; i < ca.length; i++) {
+        let c = ca[i];
+        while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+        if (c.indexOf(nameEQ) === 0) {
+          try {
+            return JSON.parse(c.substring(nameEQ.length, c.length));
+          } catch (e) {
+            return null;
+          }
+        }
+      }
+      return null;
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const optionButtons = document.querySelectorAll('.option-btn');
+      
+      // Load saved state from cookies
+      const savedCounts = getCookie('optionCounts') || {};
+      let savedSelectedOption = getCookie('optionSelected') || null;
+      
+      // Restore counts and selected state
+      optionButtons.forEach(button => {
+        const optionId = button.getAttribute('data-option');
+        const countSpan = button.querySelector('span');
+        
+        // Restore count if saved
+        if (savedCounts[optionId] !== undefined) {
+          countSpan.textContent = savedCounts[optionId];
+        }
+        
+        // Restore selected state if saved
+        if (savedSelectedOption === optionId) {
+          button.classList.add('selected');
+        }
+      });
+      
+      // Helper function to update count
+      function updateCount(optionId, increment) {
+        const button = document.querySelector(`.option-btn[data-option="${optionId}"]`);
+        if (!button) return;
+        
+        const countSpan = button.querySelector('span');
+        const currentCount = parseInt(countSpan.textContent) || 0;
+        const newCount = Math.max(0, currentCount + (increment ? 1 : -1));
+        countSpan.textContent = newCount;
+        savedCounts[optionId] = newCount;
+      }
+      
+      // Handle option button clicks
+      optionButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          const optionId = this.getAttribute('data-option');
+          const isSelected = this.classList.contains('selected');
+          
+          if (isSelected) {
+            // If already selected, deselect it and decrement count
+            this.classList.remove('selected');
+            updateCount(optionId, false);
+            savedSelectedOption = null;
+          } else {
+            // If not selected, deselect any previously selected option first
+            const previouslySelected = document.querySelector('.option-btn.selected');
+            if (previouslySelected) {
+              const prevOptionId = previouslySelected.getAttribute('data-option');
+              previouslySelected.classList.remove('selected');
+              updateCount(prevOptionId, false);
+            }
+            
+            // Select the clicked option and increment count
+            this.classList.add('selected');
+            updateCount(optionId, true);
+            savedSelectedOption = optionId;
+          }
+          
+          // Save counts and selected state to cookies
+          setCookie('optionCounts', savedCounts);
+          setCookie('optionSelected', savedSelectedOption);
+        });
+      });
+
+      // Pricing option buttons
+      const pricingOptionButtons = document.querySelectorAll('.pricing-option-btn');
+      
+      // Set Monthly as default selected
+      if (pricingOptionButtons.length > 0) {
+        pricingOptionButtons[0].classList.add('selected');
+      }
+      
+      pricingOptionButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          // Remove selected class from all pricing buttons
+          pricingOptionButtons.forEach(btn => btn.classList.remove('selected'));
+          
+          // Add selected class to clicked button
+          this.classList.add('selected');
+          
+          // Update pricing display
+          const option = this.getAttribute('data-option');
+          const priceAmount = document.querySelector('.pricing-amount');
+          const pricePeriod = document.querySelector('.pricing-period');
+          const pricingTitle = document.querySelector('.pricing-title');
+          const saveLabel = document.getElementById('save-25-label');
+          
+          if (option === 'monthly') {
+            if (priceAmount) priceAmount.textContent = '$9';
+            if (pricePeriod) pricePeriod.textContent = 'Per month';
+            if (pricingTitle) pricingTitle.textContent = 'Starter';
+            if (saveLabel) saveLabel.style.display = 'none';
+          } else if (option === 'annually') {
+            if (priceAmount) priceAmount.textContent = '$79';
+            if (pricePeriod) pricePeriod.textContent = 'Per year';
+            if (pricingTitle) pricingTitle.textContent = 'Pro';
+            if (saveLabel) saveLabel.style.display = 'flex';
+          } else if (option === 'lifetime') {
+            if (priceAmount) priceAmount.textContent = '$199';
+            if (pricePeriod) pricePeriod.textContent = 'One-time';
+            if (pricingTitle) pricingTitle.textContent = 'Believer';
+            if (saveLabel) saveLabel.style.display = 'none';
+          }
+        });
+      });
+
+      // FAQ Accordion functionality
+      const faqQuestions = document.querySelectorAll('.faq-question');
+      
+      // Function to set icon to closed state (plus icon)
+      function setIconClosed(icon) {
+        icon.innerHTML = '<path d="M6 12H18" stroke="#00B5E9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 18V6" stroke="#00B5E9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>';
+      }
+      
+      // Function to set icon to opened state (minus icon)
+      function setIconOpened(icon) {
+        icon.innerHTML = '<path d="M6 12H18" stroke="#777777" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>';
+      }
+      
+      faqQuestions.forEach(question => {
+        question.addEventListener('click', function() {
+          const faqItem = this.closest('.faq-item');
+          const answer = faqItem.querySelector('.faq-answer');
+          const icon = this.querySelector('.faq-icon');
+          const isExpanded = this.getAttribute('aria-expanded') === 'true';
+          
+          // Close all other FAQ items
+          faqQuestions.forEach(otherQuestion => {
+            if (otherQuestion !== this) {
+              const otherItem = otherQuestion.closest('.faq-item');
+              const otherAnswer = otherItem.querySelector('.faq-answer');
+              const otherIcon = otherQuestion.querySelector('.faq-icon');
+              otherAnswer.classList.add('hidden');
+              otherQuestion.setAttribute('aria-expanded', 'false');
+              setIconClosed(otherIcon);
+            }
+          });
+          
+          // Toggle current FAQ item
+          if (isExpanded) {
+            answer.classList.add('hidden');
+            this.setAttribute('aria-expanded', 'false');
+            setIconClosed(icon);
+          } else {
+            answer.classList.remove('hidden');
+            this.setAttribute('aria-expanded', 'true');
+            setIconOpened(icon);
+          }
+        });
+      });
+
+      // Video Modal functionality
+      const videoCard = document.getElementById('video-card');
+      const videoModal = document.getElementById('video-modal');
+      const videoModalOverlay = videoModal.querySelector('.video-modal-overlay');
+      const videoModalClose = videoModal.querySelector('.video-modal-close');
+      const videoIframe = document.getElementById('video-iframe');
+      
+      // Video URL - replace with your actual video URL (YouTube, Vimeo, etc.)
+      // Example YouTube: https://www.youtube.com/embed/VIDEO_ID
+      // Example Vimeo: https://player.vimeo.com/video/VIDEO_ID
+      const videoUrl = 'https://www.youtube.com/embed/4gPydCXtjbc';
+      
+      function openVideoModal() {
+        if (videoUrl) {
+          videoIframe.src = videoUrl;
+        }
+        videoModal.classList.add('active');
+        document.body.style.overflow = 'hidden'; // Prevent background scrolling
+      }
+      
+      function closeVideoModal() {
+        videoModal.classList.remove('active');
+        videoIframe.src = ''; // Stop video playback
+        document.body.style.overflow = ''; // Restore scrolling
+      }
+      
+      // Open modal when card is clicked
+      if (videoCard) {
+        videoCard.addEventListener('click', openVideoModal);
+      }
+      
+      // Close modal when overlay is clicked
+      if (videoModalOverlay) {
+        videoModalOverlay.addEventListener('click', closeVideoModal);
+      }
+      
+      // Close modal when close button is clicked
+      if (videoModalClose) {
+        videoModalClose.addEventListener('click', closeVideoModal);
+      }
+      
+      // Close modal when ESC key is pressed
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && videoModal.classList.contains('active')) {
+          closeVideoModal();
+        }
+      });
+
+      // Waitlist Modal functionality
+      const waitlistTriggers = document.querySelectorAll('.waitlist-trigger');
+      const waitlistModal = document.getElementById('waitlist-modal');
+      const waitlistModalOverlay = waitlistModal.querySelector('.waitlist-modal-overlay');
+      const waitlistModalClose = waitlistModal.querySelector('.waitlist-modal-close');
+      const waitlistForm = document.getElementById('waitlist-form');
+      const waitlistEmailInput = document.getElementById('waitlist-email');
+      
+      function openWaitlistModal() {
+        // Reset modal state when opening (in case it was closed after submission)
+        resetModalState();
+        waitlistModal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        // Focus on email input when modal opens
+        setTimeout(() => {
+          waitlistEmailInput.focus();
+        }, 100);
+      }
+      
+      function closeWaitlistModal() {
+        waitlistModal.classList.remove('active');
+        document.body.style.overflow = '';
+        // Reset form
+        waitlistForm.reset();
+        // Reset modal to initial state
+        resetModalState();
+      }
+      
+      function resetModalState() {
+        const modalForm = document.getElementById('waitlist-form');
+        const modalGetAheadContent = document.getElementById('modal-get-ahead-content');
+        const modalCounter = document.getElementById('modal-counter');
+        const modalTitle = document.getElementById('modal-title');
+        const modalDescription = document.getElementById('modal-description');
+        
+        // Reset title and description
+        if (modalTitle) {
+          modalTitle.textContent = "Join the waitlist";
+        }
+        if (modalDescription) {
+          modalDescription.textContent = "Stop losing context in chat logs. Orchestrate your AI coding agents with structured specs and real-time feature tracking.";
+        }
+        
+        // Show form and counter, hide get ahead content
+        if (modalForm) {
+          modalForm.classList.remove('hidden');
+        }
+        if (modalCounter) {
+          modalCounter.classList.remove('hidden');
+        }
+        if (modalGetAheadContent) {
+          modalGetAheadContent.classList.add('hidden');
+        }
+      }
+      
+      // Open modal when any trigger button is clicked
+      waitlistTriggers.forEach(trigger => {
+        trigger.addEventListener('click', function(e) {
+          e.preventDefault();
+          openWaitlistModal();
+        });
+      });
+      
+      // Close modal when overlay is clicked
+      if (waitlistModalOverlay) {
+        waitlistModalOverlay.addEventListener('click', closeWaitlistModal);
+      }
+      
+      // Close modal when close button is clicked
+      if (waitlistModalClose) {
+        waitlistModalClose.addEventListener('click', closeWaitlistModal);
+      }
+      
+      // Notion Integration Configuration
+      // 
+      // SETUP INSTRUCTIONS:
+      // 1. Create a new database in Notion
+      // 2. Add the following properties to your database:
+      //    - Email (type: Email)
+      //    - Created Date (type: Date)
+      //    - Browser (type: Text)
+      //    - OS (type: Text)
+      //    - Device (type: Select with options: Desktop, Mobile, Tablet)
+      //    - User Agent (type: Text)
+      //    - Language (type: Text)
+      //    - Screen Resolution (type: Text)
+      //    - Timezone (type: Text)
+      //    - Form Source (type: Select with options: modal, hero)
+      // 3. Share your database with the integration "Meyn Waitlist"
+      // 4. Get your Database ID from the URL (the part after the last slash, before the ?)
+      //    Example: https://www.notion.so/workspace/DATABASE_ID?v=...
+      // 5. Paste the Database ID below
+      const NOTION_CONFIG = {
+        secret: 'YOUR_NOTION_API_SECRET_HERE',
+        databaseId: 'Meyn-Waitlist-2cb988ba141e8025b466e9c0e7e1252f',
+        apiUrl: 'https://api.notion.com/v1/pages'
+      };
+
+      // Function to detect browser information
+      function getBrowserInfo() {
+        const ua = navigator.userAgent;
+        let browser = 'Unknown';
+        let browserVersion = '';
+        let os = 'Unknown';
+        let device = 'Desktop';
+
+        // Detect browser
+        if (ua.indexOf('Firefox') > -1) {
+          browser = 'Firefox';
+          browserVersion = ua.match(/Firefox\/([0-9.]+)/)?.[1] || '';
+        } else if (ua.indexOf('Chrome') > -1 && ua.indexOf('Edg') === -1 && ua.indexOf('OPR') === -1) {
+          browser = 'Chrome';
+          browserVersion = ua.match(/Chrome\/([0-9.]+)/)?.[1] || '';
+        } else if (ua.indexOf('Safari') > -1 && ua.indexOf('Chrome') === -1) {
+          browser = 'Safari';
+          browserVersion = ua.match(/Version\/([0-9.]+)/)?.[1] || '';
+        } else if (ua.indexOf('Edg') > -1) {
+          browser = 'Edge';
+          browserVersion = ua.match(/Edg\/([0-9.]+)/)?.[1] || '';
+        } else if (ua.indexOf('OPR') > -1) {
+          browser = 'Opera';
+          browserVersion = ua.match(/OPR\/([0-9.]+)/)?.[1] || '';
+        }
+
+        // Detect OS
+        if (ua.indexOf('Windows') > -1) {
+          os = 'Windows';
+        } else if (ua.indexOf('Mac') > -1) {
+          os = 'macOS';
+        } else if (ua.indexOf('Linux') > -1) {
+          os = 'Linux';
+        } else if (ua.indexOf('Android') > -1) {
+          os = 'Android';
+          device = 'Mobile';
+        } else if (ua.indexOf('iOS') > -1 || ua.indexOf('iPhone') > -1 || ua.indexOf('iPad') > -1) {
+          os = 'iOS';
+          device = ua.indexOf('iPad') > -1 ? 'Tablet' : 'Mobile';
+        }
+
+        // Detect device type
+        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua)) {
+          if (device === 'Desktop') {
+            device = 'Mobile';
+          }
+        }
+
+        return {
+          browser: browser,
+          browserVersion: browserVersion,
+          os: os,
+          device: device,
+          userAgent: ua,
+          language: navigator.language || 'Unknown',
+          screenWidth: window.screen.width,
+          screenHeight: window.screen.height,
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+        };
+      }
+
+      // Function to send data to Notion
+      async function addToNotion(email, formSource = 'modal') {
+        // Check if database ID is configured
+        if (!NOTION_CONFIG.databaseId) {
+          console.warn('Notion Database ID is not configured. Please set NOTION_CONFIG.databaseId');
+          return { success: false, error: 'Database ID not configured' };
+        }
+
+        const browserInfo = getBrowserInfo();
+        const now = new Date().toISOString();
+
+        // Format properties for Notion API
+        const properties = {
+          'Email': {
+            'email': email
+          },
+          'Created Date': {
+            'date': {
+              'start': now
+            }
+          },
+          'Browser': {
+            'rich_text': [{
+              'text': {
+                'content': browserInfo.browser + (browserInfo.browserVersion ? ' ' + browserInfo.browserVersion : '')
+              }
+            }]
+          },
+          'OS': {
+            'rich_text': [{
+              'text': {
+                'content': browserInfo.os
+              }
+            }]
+          },
+          'Device': {
+            'select': {
+              'name': browserInfo.device
+            }
+          },
+          'User Agent': {
+            'rich_text': [{
+              'text': {
+                'content': browserInfo.userAgent.substring(0, 2000) // Notion has a limit
+              }
+            }]
+          },
+          'Language': {
+            'rich_text': [{
+              'text': {
+                'content': browserInfo.language
+              }
+            }]
+          },
+          'Screen Resolution': {
+            'rich_text': [{
+              'text': {
+                'content': `${browserInfo.screenWidth}x${browserInfo.screenHeight}`
+              }
+            }]
+          },
+          'Timezone': {
+            'rich_text': [{
+              'text': {
+                'content': browserInfo.timezone
+              }
+            }]
+          },
+          'Form Source': {
+            'select': {
+              'name': formSource
+            }
+          }
+        };
+
+        try {
+          const response = await fetch(NOTION_CONFIG.apiUrl, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${NOTION_CONFIG.secret}`,
+              'Content-Type': 'application/json',
+              'Notion-Version': '2022-06-28'
+            },
+            body: JSON.stringify({
+              'parent': {
+                'database_id': NOTION_CONFIG.databaseId
+              },
+              'properties': properties
+            })
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            console.error('Notion API Error:', errorData);
+            return { success: false, error: errorData.message || 'Failed to add to Notion' };
+          }
+
+          const data = await response.json();
+          return { success: true, data: data };
+        } catch (error) {
+          console.error('Error adding to Notion:', error);
+          return { success: false, error: error.message };
+        }
+      }
+
+      // Function to increment waitlist counter
+      function incrementWaitlistCounter() {
+        // Get current count from localStorage or start with 254
+        let currentCount = parseInt(localStorage.getItem('waitlistCount') || '254');
+        
+        // Increment the count
+        currentCount += 1;
+        
+        // Save to localStorage
+        localStorage.setItem('waitlistCount', currentCount.toString());
+        
+        // Update both counter elements
+        const heroCounter = document.getElementById('hero-counter');
+        const modalCounter = document.getElementById('modal-counter');
+        
+        const newText = `${currentCount}+ people already in the line`;
+        
+        if (heroCounter) {
+          heroCounter.textContent = newText;
+        }
+        if (modalCounter) {
+          modalCounter.textContent = newText;
+        }
+        
+        return currentCount;
+      }
+
+      // Initialize counter on page load
+      function initializeCounter() {
+        const savedCount = localStorage.getItem('waitlistCount');
+        if (savedCount) {
+          const count = parseInt(savedCount);
+          const heroCounter = document.getElementById('hero-counter');
+          const modalCounter = document.getElementById('modal-counter');
+          const newText = `${count}+ people already in the line`;
+          
+          if (heroCounter) {
+            heroCounter.textContent = newText;
+          }
+          if (modalCounter) {
+            modalCounter.textContent = newText;
+          }
+        }
+      }
+
+      // Initialize counter when page loads
+      initializeCounter();
+
+      // Function to generate a user ID
+      function generateUserId() {
+        // Generate a 4-digit random number
+        return '#' + Math.floor(1000 + Math.random() * 9000).toString();
+      }
+
+      // Function to show "get ahead" section for hero form
+      function showHeroGetAhead(email) {
+        const heroForm = document.getElementById('hero-waitlist-form');
+        const heroGetAhead = document.getElementById('hero-get-ahead');
+        const heroCounter = document.getElementById('hero-counter');
+        const heroTitle = document.getElementById('hero-title');
+        const heroDescription = document.getElementById('hero-description');
+        const heroUserEmail = document.getElementById('hero-user-email');
+        const heroUserId = document.getElementById('hero-user-id');
+        
+        if (heroForm && heroGetAhead) {
+          // Get waitlist position (counter value represents user's position)
+          const waitlistCount = parseInt(localStorage.getItem('waitlistCount') || '254');
+          const userPosition = '#' + waitlistCount.toString();
+          
+          // Update H1 title
+          if (heroTitle) {
+            heroTitle.innerHTML = "You're on the line.<br class=\"hidden sm:block\"/>Be the first to try!";
+          }
+          
+          // Update description
+          if (heroDescription) {
+            heroDescription.textContent = "Get ahead of 50 people by filling the form";
+          }
+          
+          // Update email and ID display
+          if (heroUserEmail) {
+            heroUserEmail.textContent = email;
+          }
+          if (heroUserId) {
+            heroUserId.textContent = userPosition;
+          }
+          
+          // Hide form and counter, show get ahead section
+          heroForm.classList.add('hidden');
+          if (heroCounter) {
+            heroCounter.classList.add('hidden');
+          }
+          heroGetAhead.classList.remove('hidden');
+        }
+      }
+
+      // Function to show "get ahead" section for modal form
+      function showModalGetAhead(email) {
+        const modalForm = document.getElementById('waitlist-form');
+        const modalGetAheadContent = document.getElementById('modal-get-ahead-content');
+        const modalCounter = document.getElementById('modal-counter');
+        const modalTitle = document.getElementById('modal-title');
+        const modalDescription = document.getElementById('modal-description');
+        const modalUserEmail = document.getElementById('modal-user-email');
+        const modalUserId = document.getElementById('modal-user-id');
+        
+        if (modalForm && modalGetAheadContent) {
+          // Get waitlist position (counter value represents user's position)
+          const waitlistCount = parseInt(localStorage.getItem('waitlistCount') || '254');
+          const userPosition = '#' + waitlistCount.toString();
+          
+          // Update modal title and description
+          if (modalTitle) {
+            modalTitle.textContent = "You're on the line. Be the first to try!";
+          }
+          if (modalDescription) {
+            modalDescription.textContent = "Get ahead of 50 people by filling the form";
+          }
+          
+          // Update email and ID display
+          if (modalUserEmail) {
+            modalUserEmail.textContent = email;
+          }
+          if (modalUserId) {
+            modalUserId.textContent = userPosition;
+          }
+          
+          // Hide form and counter, show get ahead content
+          modalForm.classList.add('hidden');
+          if (modalCounter) {
+            modalCounter.classList.add('hidden');
+          }
+          modalGetAheadContent.classList.remove('hidden');
+        }
+      }
+
+      // Handle "Fill out the form" button clicks
+      // Note: Buttons are added dynamically, so we use event delegation
+      document.addEventListener('click', function(e) {
+        if (e.target && e.target.id === 'hero-fill-form-btn') {
+          // Redirect to external form URL
+          window.location.href = FORM_REDIRECT_URL;
+        }
+        
+        if (e.target && e.target.id === 'modal-fill-form-btn') {
+          // Redirect to external form URL
+          window.location.href = FORM_REDIRECT_URL;
+        }
+      });
+
+      // Handle modal form submission
+      if (waitlistForm) {
+        waitlistForm.addEventListener('submit', async function(e) {
+          e.preventDefault();
+          const email = waitlistEmailInput.value.trim();
+          
+          if (email) {
+            // Disable submit button to prevent double submission
+            const submitButton = waitlistForm.querySelector('button[type="submit"]');
+            const originalText = submitButton.textContent;
+            submitButton.disabled = true;
+            submitButton.textContent = 'Joining...';
+
+            try {
+              // Add to Notion
+              const notionResult = await addToNotion(email, 'modal');
+              
+              // Increment counter after submission (regardless of Notion result)
+              incrementWaitlistCounter();
+              
+              // Show get ahead section
+              showModalGetAhead(email);
+              
+              if (notionResult.success) {
+                toast('Successfully joined!', 'success', 'We\'ll notify you when we launch.');
+              } else {
+                // Still show success to user even if Notion fails (don't expose backend errors)
+                console.error('Notion error:', notionResult.error);
+                toast('Successfully joined!', 'success', 'We\'ll notify you when we launch.');
+              }
+            } catch (error) {
+              console.error('Error:', error);
+              // Increment counter even if there's an error (user sees success message)
+              incrementWaitlistCounter();
+              // Show get ahead section even on error
+              showModalGetAhead(email);
+              toast('Successfully joined!', 'success', 'We\'ll notify you when we launch.');
+            } finally {
+              submitButton.disabled = false;
+              submitButton.textContent = originalText;
+            }
+          } else {
+            toast('Please enter a valid email', 'error', 'Email is required.');
+          }
+        });
+      }
+      
+      // Handle hero form submission
+      const heroForm = document.getElementById('hero-waitlist-form');
+      const heroEmailInput = document.getElementById('hero-email');
+      
+      if (heroForm) {
+        heroForm.addEventListener('submit', async function(e) {
+          e.preventDefault();
+          const email = heroEmailInput.value.trim();
+          
+          if (email) {
+            // Disable submit button to prevent double submission
+            const submitButton = heroForm.querySelector('button[type="submit"]');
+            const originalText = submitButton ? submitButton.textContent : '';
+            if (submitButton) {
+              submitButton.disabled = true;
+              submitButton.textContent = 'Joining...';
+            }
+
+            try {
+              // Add to Notion
+              const notionResult = await addToNotion(email, 'hero');
+              
+              // Increment counter after submission (regardless of Notion result)
+              incrementWaitlistCounter();
+              
+              // Show get ahead section
+              showHeroGetAhead(email);
+              
+              if (notionResult.success) {
+                toast('Successfully joined!', 'success', 'We\'ll notify you when we launch.');
+              } else {
+                // Still show success to user even if Notion fails (don't expose backend errors)
+                console.error('Notion error:', notionResult.error);
+                toast('Successfully joined!', 'success', 'We\'ll notify you when we launch.');
+              }
+            } catch (error) {
+              console.error('Error:', error);
+              // Increment counter even if there's an error (user sees success message)
+              incrementWaitlistCounter();
+              // Show get ahead section even on error
+              showHeroGetAhead(email);
+              toast('Successfully joined!', 'success', 'We\'ll notify you when we launch.');
+            } finally {
+              if (submitButton) {
+                submitButton.disabled = false;
+                submitButton.textContent = originalText;
+              }
+            }
+          } else {
+            toast('Please enter a valid email', 'error', 'Email is required.');
+          }
+        });
+      }
+      
+      // Close modal when ESC key is pressed
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && waitlistModal.classList.contains('active')) {
+          closeWaitlistModal();
+        }
+      });
+    });
+  </script>
+
+  <!-- FAQ Section Copy (Bottom) -->
+  <div id="faq" class="mt-48 flex flex-col items-center gap-6 self-stretch w-full px-4 sm:px-0" style="color: rgba(237, 237, 237, 1);">
+    <!-- Label -->
+    <div class="inline-flex items-center gap-2 py-[6.5px] px-3 rounded-[12px] bg-[#F7F7F7]">
+      <span class="text-xs font-medium leading-normal text-[#777] font-open">FAQ</span>
+    </div>
+
+    <!-- Title -->
+    <h2 class="self-stretch text-center text-[#181925] font-open text-[36px] font-medium leading-[44px] tracking-[-0.64px]">
+      Frequently<br/>asked questions
+    </h2>
+
+    <!-- Description -->
+    <p class="self-stretch text-center text-[#777] font-open text-base font-normal leading-6 tracking-[-0.32px] -mt-2">
+      Find answers to common questions about<br>PromptOps platform and how it works.
+    </p>
+
+    <!-- FAQ Accordion -->
+    <div class="flex flex-col items-start gap-2 w-full max-w-[640px] mt-6">
+      <!-- FAQ Item 1 -->
+      <div class="faq-item w-full">
+        <button class="faq-question flex w-full p-5 justify-between items-center rounded-2xl bg-[#FBFBFB] transition-colors hover:bg-[#F7F7F7]" aria-expanded="false">
+          <span class="text-[#181925] font-open text-base font-medium leading-6 tracking-[-0.32px] text-left max-w-[496px]">
+            How is Prompt Ops different from Spec Kit or Kiro?
+          </span>
+          <svg class="faq-icon w-5 h-5 text-[#181925] transition-transform shrink-0 ml-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M6 12H18" stroke="#00B5E9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12 18V6" stroke="#00B5E9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <div class="faq-answer hidden flex flex-col items-start gap-3 pt-0 px-5 pb-5 rounded-2xl bg-[#FBFBFB]">
+          <p class="text-[#666] font-open text-base font-normal leading-6 tracking-[-0.32px]">
+            Unlike Spec Kit and Kiro which are CLI-based or IDE-integrated tools, Prompt Ops provides a visual dashboard for managing your entire spec-driven workflow. You can see all features, their specs, and progress status at a glance — no terminal commands or file hunting required.
+          </p>
+        </div>
+      </div>
+
+      <!-- FAQ Item 2 -->
+      <div class="faq-item w-full">
+        <button class="faq-question flex w-full p-5 justify-between items-center rounded-2xl bg-[#FBFBFB] transition-colors hover:bg-[#F7F7F7]" aria-expanded="false">
+          <span class="text-[#181925] font-open text-base font-medium leading-6 tracking-[-0.32px] text-left max-w-[496px]">
+            Which AI coding agents does Prompt Ops support?
+          </span>
+          <svg class="faq-icon w-5 h-5 text-[#181925] transition-transform shrink-0 ml-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M6 12H18" stroke="#00B5E9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12 18V6" stroke="#00B5E9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <div class="faq-answer hidden flex flex-col items-start gap-3 pt-0 px-5 pb-5 rounded-2xl bg-[#FBFBFB]">
+          <p class="text-[#666] font-open text-base font-normal leading-6 tracking-[-0.32px]">
+            Prompt Ops works with all major AI coding agents including GitHub Copilot, Claude Code, Cursor, Windsurf, Gemini CLI, Amazon Q Developer, and Aider. You can even assign different agents to different features based on your team's preferences.
+          </p>
+        </div>
+      </div>
+
+      <!-- FAQ Item 3 -->
+      <div class="faq-item w-full">
+        <button class="faq-question flex w-full p-5 justify-between items-center rounded-2xl bg-[#FBFBFB] transition-colors hover:bg-[#F7F7F7]" aria-expanded="false">
+          <span class="text-[#181925] font-open text-base font-medium leading-6 tracking-[-0.32px] text-left max-w-[496px]">
+            Can I import my existing spec files and projects?
+          </span>
+          <svg class="faq-icon w-5 h-5 text-[#181925] transition-transform shrink-0 ml-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M6 12H18" stroke="#00B5E9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12 18V6" stroke="#00B5E9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <div class="faq-answer hidden flex flex-col items-start gap-3 pt-0 px-5 pb-5 rounded-2xl bg-[#FBFBFB]">
+          <p class="text-[#666] font-open text-base font-normal leading-6 tracking-[-0.32px]">
+            Yes. Prompt Ops supports importing existing Requirements.md, Design.md, and Tasks.md files from your repositories. Simply connect your project folder or Git repo, and Prompt Ops will automatically detect and organize your spec structure.
+          </p>
+        </div>
+      </div>
+
+      <!-- FAQ Item 4 -->
+      <div class="faq-item w-full">
+        <button class="faq-question flex w-full p-5 justify-between items-center rounded-2xl bg-[#FBFBFB] transition-colors hover:bg-[#F7F7F7]" aria-expanded="false">
+          <span class="text-[#181925] font-open text-base font-medium leading-6 tracking-[-0.32px] text-left max-w-[496px]">
+            Do I need to write specs manually or can AI generate them?
+          </span>
+          <svg class="faq-icon w-5 h-5 text-[#181925] transition-transform shrink-0 ml-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M6 12H18" stroke="#00B5E9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12 18V6" stroke="#00B5E9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <div class="faq-answer hidden flex flex-col items-start gap-3 pt-0 px-5 pb-5 rounded-2xl bg-[#FBFBFB]">
+          <p class="text-[#666] font-open text-base font-normal leading-6 tracking-[-0.32px]">
+            Both. You can write specs manually, use the natural language command bar to edit specs conversationally, or let AI generate initial drafts from your feature descriptions. Prompt Ops also provides templates to accelerate spec creation.
+          </p>
+        </div>
+      </div>
+
+      <!-- FAQ Item 5 -->
+      <div class="faq-item w-full">
+        <button class="faq-question flex w-full p-5 justify-between items-center rounded-2xl bg-[#FBFBFB] transition-colors hover:bg-[#F7F7F7]" aria-expanded="false">
+          <span class="text-[#181925] font-open text-base font-medium leading-6 tracking-[-0.32px] text-left max-w-[496px]">
+            How does drift detection work when my code changes?
+          </span>
+          <svg class="faq-icon w-5 h-5 text-[#181925] transition-transform shrink-0 ml-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M6 12H18" stroke="#00B5E9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12 18V6" stroke="#00B5E9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <div class="faq-answer hidden flex flex-col items-start gap-3 pt-0 px-5 pb-5 rounded-2xl bg-[#FBFBFB]">
+          <p class="text-[#666] font-open text-base font-normal leading-6 tracking-[-0.32px]">
+            Prompt Ops monitors your codebase and compares it against your specifications. When the implementation diverges from the spec — whether from manual edits, AI-generated additions, or scope creep — you'll receive alerts highlighting exactly what drifted and where.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="mt-48 mb-8 w-full px-4 sm:px-6">
+    <div class="flex flex-col items-center justify-between w-full max-w-[1024px] mx-auto p-8 gap-8 lg:text-left lg:flex-row bg-gradient-to-b from-white to-[#F7F7F7] rounded-3xl border border-[#EDEDED]" style="border-color: rgba(247, 247, 247, 1);">
+      <div class="flex justify-center w-full lg:justify-start">
+        <a href="index.html">
+          <img src="./Group 2.svg" alt="Meyn AI Logo" class="h-8 w-auto" style="filter: brightness(0) saturate(100%) invert(9%) sepia(8%) saturate(2000%) hue-rotate(200deg) brightness(95%) contrast(95%);" />
+        </a>
+      </div>
+      <nav aria-labelledby="footer-heading">
+        <ul class="flex flex-col items-center justify-center lg:flex-row gap-x-6 gap-y-2">
+          <li>
+            <a
+              class="text-sm font-medium text-[#181925] font-open hover:text-[#00B5E9] transition-colors"
+              href="manifesto.html"
+            >
+              Manifesto
+            </a>
+          </li>
+          <li>
+            <a
+              class="text-sm font-medium text-[#181925] font-open hover:text-[#00B5E9] transition-colors"
+              href="investors.html"
+            >
+              Investors
+            </a>
+          </li>
+          <li>
+            <a
+              class="text-sm font-medium text-[#181925] font-open hover:text-[#00B5E9] transition-colors"
+              href="#pricing"
+            >
+              Pricing
+            </a>
+          </li>
+          <li>
+            <a
+              class="text-sm font-medium text-[#181925] font-open hover:text-[#00B5E9] transition-colors"
+              href="#faq"
+            >
+              FAQ
+            </a>
+          </li>
+        </ul>
+      </nav>
+      <div class="flex items-center justify-center w-full lg:justify-end">
+        <button
+          class="waitlist-trigger inline-flex items-center justify-center gap-[10px] text-xs sm:text-sm leading-[18px] tracking-[-0.32px] text-white bg-primary hover:bg-[#0099CC] rounded-[999px] px-2 sm:px-4 py-[10px] shadow-[0_1px_1px_0_rgba(0,0,0,0.08),0_0_0_1px_rgba(0,0,0,0.05)] transition-colors"
+          type="button"
+        >
+          Join waitlist
+        </button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Footer Attribution -->
+  <div class="w-full max-w-[1024px] mx-auto px-4 sm:px-6 mb-8">
+    <p class="text-center text-xs text-[#999] font-open">
+      Made with ☕️ by <a href="https://www.linkedin.com/in/sametozkale/" target="_blank" rel="noopener noreferrer" class="text-[#00B5E9] hover:text-[#0099CC] transition-colors">Samet</a>
+    </p>
+  </div>
+</body>
+</html>
+
+
+
+
+
