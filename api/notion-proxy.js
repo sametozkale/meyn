@@ -34,9 +34,10 @@ export default async function handler(req, res) {
     // Prepare body
     let body = null;
     if (req.method !== 'GET' && req.method !== 'OPTIONS') {
-      // Vercel automatically parses JSON body, so stringify if it's an object
+      // For Vercel, req.body is already parsed if Content-Type is application/json
+      // But we need to stringify it for the Notion API
       if (req.body) {
-        body = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
+        body = JSON.stringify(req.body);
       }
     }
 
