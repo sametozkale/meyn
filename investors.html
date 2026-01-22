@@ -649,6 +649,12 @@
 
       // Function to send data to Notion
       async function addToNotion(email, formSource = 'modal') {
+        // Check if secret is placeholder or not configured
+        if (!NOTION_CONFIG.secret || NOTION_CONFIG.secret === 'YOUR_NOTION_WAITLIST_SECRET') {
+          console.warn('Notion secret is not configured. Please set NOTION_CONFIG.secret');
+          return { success: false, error: 'Secret not configured' };
+        }
+        
         if (!NOTION_CONFIG.databaseId) {
           console.warn('Notion Database ID is not configured. Please set NOTION_CONFIG.databaseId');
           return { success: false, error: 'Database ID not configured' };
@@ -685,9 +691,9 @@
           });
 
           if (!response.ok) {
-            const errorData = await response.json();
+            const errorData = await response.json().catch(() => ({}));
             console.error('Notion API Error:', errorData);
-            return { success: false, error: errorData.message || 'Failed to add to Notion' };
+            return { success: false, error: errorData.message || `Failed to add to Notion (status ${response.status})` };
           }
 
           const data = await response.json();
@@ -700,6 +706,12 @@
 
       // Function to get total waitlist count from Notion (with pagination support)
       async function getTotalWaitlistCount() {
+        // Check if secret is placeholder or not configured
+        if (!NOTION_CONFIG.secret || NOTION_CONFIG.secret === 'YOUR_NOTION_WAITLIST_SECRET' || !NOTION_CONFIG.databaseId) {
+          // Fallback to localStorage if secret/database not configured
+          return parseInt(localStorage.getItem('waitlistCount') || '254');
+        }
+
         try {
           let totalCount = 0;
           let hasMore = true;
@@ -724,7 +736,8 @@
             });
 
             if (!response.ok) {
-              throw new Error('Failed to fetch waitlist count');
+              const errorData = await response.json().catch(() => ({}));
+              throw new Error(errorData.message || `Failed to fetch waitlist count (status ${response.status})`);
             }
 
             const data = await response.json();
@@ -733,6 +746,8 @@
             startCursor = data.next_cursor || null;
           }
 
+          // Save to localStorage as cache
+          localStorage.setItem('waitlistCount', totalCount.toString());
           return totalCount;
         } catch (error) {
           console.error('Error fetching total waitlist count:', error);
@@ -756,10 +771,18 @@
 
       // Function to increment waitlist counter (now fetches from Notion)
       async function incrementWaitlistCounter() {
-        // Fetch fresh count from Notion
+        // Fetch fresh count from Notion (this will include the newly added email)
         const count = await getTotalWaitlistCount();
         updateWaitlistCounter(count);
         return count;
+      }
+
+      // Function to manually increment waitlist counter (for fallback when Notion fails)
+      function incrementWaitlistCounterLocal() {
+        const current = parseInt(localStorage.getItem('waitlistCount') || '254');
+        const newCount = current + 1;
+        updateWaitlistCounter(newCount);
+        return newCount;
       }
 
       // Initialize counter on page load
@@ -829,18 +852,24 @@
 
             try {
               const notionResult = await addToNotion(email, 'modal');
-              await incrementWaitlistCounter();
-              await showModalGetAhead(email);
               
               if (notionResult.success) {
-                toast('Successfully joined!', 'success', 'We\'ll notify you when we launch.');
+                // If Notion succeeded, fetch fresh count (will include new email)
+                await incrementWaitlistCounter();
               } else {
+                // If Notion failed, increment local counter as fallback
                 console.error('Notion error:', notionResult.error);
-                toast('Successfully joined!', 'success', 'We\'ll notify you when we launch.');
+                incrementWaitlistCounterLocal();
               }
+              
+              await showModalGetAhead(email);
+              
+              // Always show success to user
+              toast('Successfully joined!', 'success', 'We\'ll notify you when we launch.');
             } catch (error) {
               console.error('Error:', error);
-              await incrementWaitlistCounter();
+              // Increment counter even if there's an error (user sees success message)
+              incrementWaitlistCounterLocal();
               await showModalGetAhead(email);
               toast('Successfully joined!', 'success', 'We\'ll notify you when we launch.');
             } finally {

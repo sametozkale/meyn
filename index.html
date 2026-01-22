@@ -3036,8 +3036,10 @@
     // Function to get counter value from Notion
     async function getCounterValue(optionId) {
       try {
-        if (!COUNTER_CONFIG.databaseId || COUNTER_CONFIG.databaseId === 'COUNTER_DATABASE_ID') {
-          // Fallback to localStorage if database not configured
+        // Check if secret is placeholder or not configured
+        if (!COUNTER_CONFIG.secret || COUNTER_CONFIG.secret === 'YOUR_NOTION_COUNTER_SECRET' || 
+            !COUNTER_CONFIG.databaseId || COUNTER_CONFIG.databaseId === 'COUNTER_DATABASE_ID') {
+          // Fallback to localStorage if secret/database not configured
           const saved = localStorage.getItem(`counter_${optionId}`);
           return saved ? parseInt(saved) : (optionId === '1' ? 27 : optionId === '2' ? 12 : 5);
         }
@@ -3060,17 +3062,22 @@
         });
 
         if (!response.ok) {
-          throw new Error('Failed to fetch counter');
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.message || `API request failed with status ${response.status}`);
         }
 
         const data = await response.json();
         if (data.results && data.results.length > 0) {
           const count = data.results[0].properties?.Count?.number || 0;
+          // Save to localStorage as cache
+          localStorage.setItem(`counter_${optionId}`, count.toString());
           return count;
         }
         
         // If no record exists, return default
-        return optionId === '1' ? 27 : optionId === '2' ? 12 : 5;
+        const defaultCount = optionId === '1' ? 27 : optionId === '2' ? 12 : 5;
+        localStorage.setItem(`counter_${optionId}`, defaultCount.toString());
+        return defaultCount;
       } catch (error) {
         console.error('Error fetching counter:', error);
         // Fallback to localStorage
@@ -3081,15 +3088,17 @@
 
     // Function to increment counter in Notion
     async function incrementCounter(optionId) {
-      try {
-        if (!COUNTER_CONFIG.databaseId || COUNTER_CONFIG.databaseId === 'COUNTER_DATABASE_ID') {
-          // Fallback to localStorage
-          const current = parseInt(localStorage.getItem(`counter_${optionId}`) || (optionId === '1' ? 27 : optionId === '2' ? 12 : 5));
-          const newValue = current + 1;
-          localStorage.setItem(`counter_${optionId}`, newValue.toString());
-          return newValue;
-        }
+      // Check if secret is placeholder or not configured
+      if (!COUNTER_CONFIG.secret || COUNTER_CONFIG.secret === 'YOUR_NOTION_COUNTER_SECRET' || 
+          !COUNTER_CONFIG.databaseId || COUNTER_CONFIG.databaseId === 'COUNTER_DATABASE_ID') {
+        // Fallback to localStorage
+        const current = parseInt(localStorage.getItem(`counter_${optionId}`) || (optionId === '1' ? 27 : optionId === '2' ? 12 : 5));
+        const newValue = current + 1;
+        localStorage.setItem(`counter_${optionId}`, newValue.toString());
+        return newValue;
+      }
 
+      try {
         // First, try to find existing record
         const queryResponse = await fetch(`${COUNTER_CONFIG.queryUrl}/${COUNTER_CONFIG.databaseId}/query`, {
           method: 'POST',
@@ -3108,6 +3117,11 @@
           })
         });
 
+        if (!queryResponse.ok) {
+          const errorData = await queryResponse.json().catch(() => ({}));
+          throw new Error(errorData.message || `Query failed with status ${queryResponse.status}`);
+        }
+
         const queryData = await queryResponse.json();
         
         if (queryData.results && queryData.results.length > 0) {
@@ -3116,7 +3130,7 @@
           const currentCount = queryData.results[0].properties?.Count?.number || 0;
           const newCount = currentCount + 1;
 
-          await fetch(`${COUNTER_CONFIG.apiUrl}/pages/${pageId}`, {
+          const updateResponse = await fetch(`${COUNTER_CONFIG.apiUrl}/pages/${pageId}`, {
             method: 'PATCH',
             headers: {
               'Authorization': `Bearer ${COUNTER_CONFIG.secret}`,
@@ -3132,13 +3146,20 @@
             })
           });
 
+          if (!updateResponse.ok) {
+            const errorData = await updateResponse.json().catch(() => ({}));
+            throw new Error(errorData.message || `Update failed with status ${updateResponse.status}`);
+          }
+
+          // Save to localStorage as cache
+          localStorage.setItem(`counter_${optionId}`, newCount.toString());
           return newCount;
         } else {
           // Create new record
           const defaultCount = optionId === '1' ? 27 : optionId === '2' ? 12 : 5;
           const newCount = defaultCount + 1;
 
-          await fetch(`${COUNTER_CONFIG.apiUrl}/pages`, {
+          const createResponse = await fetch(`${COUNTER_CONFIG.apiUrl}/pages`, {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${COUNTER_CONFIG.secret}`,
@@ -3166,11 +3187,18 @@
             })
           });
 
+          if (!createResponse.ok) {
+            const errorData = await createResponse.json().catch(() => ({}));
+            throw new Error(errorData.message || `Create failed with status ${createResponse.status}`);
+          }
+
+          // Save to localStorage as cache
+          localStorage.setItem(`counter_${optionId}`, newCount.toString());
           return newCount;
         }
       } catch (error) {
         console.error('Error incrementing counter:', error);
-        // Fallback to localStorage
+        // Fallback to localStorage - increment locally
         const current = parseInt(localStorage.getItem(`counter_${optionId}`) || (optionId === '1' ? 27 : optionId === '2' ? 12 : 5));
         const newValue = current + 1;
         localStorage.setItem(`counter_${optionId}`, newValue.toString());
@@ -3535,6 +3563,12 @@
 
       // Function to send data to Notion
       async function addToNotion(email, formSource = 'modal') {
+        // Check if secret is placeholder or not configured
+        if (!NOTION_CONFIG.secret || NOTION_CONFIG.secret === 'YOUR_NOTION_WAITLIST_SECRET') {
+          console.warn('Notion secret is not configured. Please set NOTION_CONFIG.secret');
+          return { success: false, error: 'Secret not configured' };
+        }
+        
         // Check if database ID is configured
         if (!NOTION_CONFIG.databaseId) {
           console.warn('Notion Database ID is not configured. Please set NOTION_CONFIG.databaseId');
@@ -3625,9 +3659,9 @@
           });
 
           if (!response.ok) {
-            const errorData = await response.json();
+            const errorData = await response.json().catch(() => ({}));
             console.error('Notion API Error:', errorData);
-            return { success: false, error: errorData.message || 'Failed to add to Notion' };
+            return { success: false, error: errorData.message || `Failed to add to Notion (status ${response.status})` };
           }
 
           const data = await response.json();
@@ -3640,6 +3674,12 @@
 
       // Function to get total waitlist count from Notion (with pagination support)
       async function getTotalWaitlistCount() {
+        // Check if secret is placeholder or not configured
+        if (!NOTION_CONFIG.secret || NOTION_CONFIG.secret === 'YOUR_NOTION_WAITLIST_SECRET' || !NOTION_CONFIG.databaseId) {
+          // Fallback to localStorage if secret/database not configured
+          return parseInt(localStorage.getItem('waitlistCount') || '254');
+        }
+
         try {
           let totalCount = 0;
           let hasMore = true;
@@ -3664,7 +3704,8 @@
             });
 
             if (!response.ok) {
-              throw new Error('Failed to fetch waitlist count');
+              const errorData = await response.json().catch(() => ({}));
+              throw new Error(errorData.message || `Failed to fetch waitlist count (status ${response.status})`);
             }
 
             const data = await response.json();
@@ -3673,6 +3714,8 @@
             startCursor = data.next_cursor || null;
           }
 
+          // Save to localStorage as cache
+          localStorage.setItem('waitlistCount', totalCount.toString());
           return totalCount;
         } catch (error) {
           console.error('Error fetching total waitlist count:', error);
@@ -3700,10 +3743,18 @@
 
       // Function to increment waitlist counter (now fetches from Notion)
       async function incrementWaitlistCounter() {
-        // Fetch fresh count from Notion
+        // Fetch fresh count from Notion (this will include the newly added email)
         const count = await getTotalWaitlistCount();
         updateWaitlistCounter(count);
         return count;
+      }
+
+      // Function to manually increment waitlist counter (for fallback when Notion fails)
+      function incrementWaitlistCounterLocal() {
+        const current = parseInt(localStorage.getItem('waitlistCount') || '254');
+        const newCount = current + 1;
+        updateWaitlistCounter(newCount);
+        return newCount;
       }
 
       // Initialize counter on page load
@@ -3835,23 +3886,24 @@
               // Add to Notion
               const notionResult = await addToNotion(email, 'modal');
               
-              // Increment counter after submission (regardless of Notion result)
-              await incrementWaitlistCounter();
+              if (notionResult.success) {
+                // If Notion succeeded, fetch fresh count (will include new email)
+                await incrementWaitlistCounter();
+              } else {
+                // If Notion failed, increment local counter as fallback
+                console.error('Notion error:', notionResult.error);
+                incrementWaitlistCounterLocal();
+              }
               
               // Show get ahead section
               await showModalGetAhead(email);
               
-              if (notionResult.success) {
-                toast('Successfully joined!', 'success', 'We\'ll notify you when we launch.');
-              } else {
-                // Still show success to user even if Notion fails (don't expose backend errors)
-                console.error('Notion error:', notionResult.error);
-                toast('Successfully joined!', 'success', 'We\'ll notify you when we launch.');
-              }
+              // Always show success to user
+              toast('Successfully joined!', 'success', 'We\'ll notify you when we launch.');
             } catch (error) {
               console.error('Error:', error);
               // Increment counter even if there's an error (user sees success message)
-              await incrementWaitlistCounter();
+              incrementWaitlistCounterLocal();
               // Show get ahead section even on error
               await showModalGetAhead(email);
               toast('Successfully joined!', 'success', 'We\'ll notify you when we launch.');
@@ -3887,23 +3939,24 @@
               // Add to Notion
               const notionResult = await addToNotion(email, 'hero');
               
-              // Increment counter after submission (regardless of Notion result)
-              await incrementWaitlistCounter();
+              if (notionResult.success) {
+                // If Notion succeeded, fetch fresh count (will include new email)
+                await incrementWaitlistCounter();
+              } else {
+                // If Notion failed, increment local counter as fallback
+                console.error('Notion error:', notionResult.error);
+                incrementWaitlistCounterLocal();
+              }
               
               // Show get ahead section
               await showHeroGetAhead(email);
               
-              if (notionResult.success) {
-                toast('Successfully joined!', 'success', 'We\'ll notify you when we launch.');
-              } else {
-                // Still show success to user even if Notion fails (don't expose backend errors)
-                console.error('Notion error:', notionResult.error);
-                toast('Successfully joined!', 'success', 'We\'ll notify you when we launch.');
-              }
+              // Always show success to user
+              toast('Successfully joined!', 'success', 'We\'ll notify you when we launch.');
             } catch (error) {
               console.error('Error:', error);
               // Increment counter even if there's an error (user sees success message)
-              await incrementWaitlistCounter();
+              incrementWaitlistCounterLocal();
               // Show get ahead section even on error
               await showHeroGetAhead(email);
               toast('Successfully joined!', 'success', 'We\'ll notify you when we launch.');
