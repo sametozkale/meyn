@@ -3028,11 +3028,11 @@
     const COUNTER_CONFIG = {
       secret: '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',
       databaseId: '2f0988ba141e8094b702f9a42671fcaf',
+      dataSourceId: '2f0988ba-141e-802b-a007-000b21304e34', // Data Source ID for Options
       apiUrl: 'https://api.notion.com/v1',
       queryUrl: 'https://api.notion.com/v1/databases',
       dataSourceUrl: 'https://api.notion.com/v1/data_sources',
-      proxyUrl: '/api/notion-proxy', // Vercel serverless function proxy
-      dataSourceId: null // Will be fetched on first use
+      proxyUrl: '/api/notion-proxy' // Vercel serverless function proxy
     };
 
     // Helper function to make Notion API calls through proxy
@@ -3049,43 +3049,6 @@
       });
     }
 
-    // Step 1: Discover data_source_id from database_id (Notion API 2025-09-03)
-    async function getDataSourceId(databaseId) {
-      // Check cache first
-      const cached = localStorage.getItem(`data_source_id_${databaseId}`);
-      if (cached) {
-        return cached;
-      }
-
-      try {
-        // Get database info with 2025-09-03 to get data_sources
-        const dbUrl = `${COUNTER_CONFIG.apiUrl}/databases/${databaseId}`;
-        const response = await notionFetch(dbUrl, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${COUNTER_CONFIG.secret}`,
-            'Notion-Version': '2025-09-03'
-          }
-        });
-
-        if (!response.ok) {
-          throw new Error(`Failed to get data source: ${response.status}`);
-        }
-
-        const data = await response.json();
-        if (data.data_sources && data.data_sources.length > 0) {
-          const dataSourceId = data.data_sources[0].id;
-          // Cache it
-          localStorage.setItem(`data_source_id_${databaseId}`, dataSourceId);
-          return dataSourceId;
-        }
-        throw new Error('No data sources found');
-      } catch (error) {
-        console.error('Error getting data source ID:', error);
-        // Fallback: use database_id as data_source_id (for backward compatibility)
-        return databaseId;
-      }
-    }
 
     // Function to get counter value from Notion
     async function getCounterValue(optionId) {
@@ -3098,9 +3061,8 @@
           return saved ? parseInt(saved) : (optionId === '1' ? 27 : optionId === '2' ? 12 : 5);
         }
 
-        // Get data_source_id (Step 1 from migration guide)
-        const dataSourceId = await getDataSourceId(COUNTER_CONFIG.databaseId);
-        const notionUrl = `${COUNTER_CONFIG.dataSourceUrl}/${dataSourceId}/query`;
+        // Use data_source_id directly
+        const notionUrl = `${COUNTER_CONFIG.dataSourceUrl}/${COUNTER_CONFIG.dataSourceId}/query`;
         const response = await notionFetch(notionUrl, {
           method: 'POST',
           headers: {
@@ -3155,11 +3117,8 @@
       }
 
       try {
-        // Get data_source_id (Step 1 from migration guide)
-        const dataSourceId = await getDataSourceId(COUNTER_CONFIG.databaseId);
-        
         // First, try to find existing record
-        const queryUrl = `${COUNTER_CONFIG.dataSourceUrl}/${dataSourceId}/query`;
+        const queryUrl = `${COUNTER_CONFIG.dataSourceUrl}/${COUNTER_CONFIG.dataSourceId}/query`;
         const queryResponse = await notionFetch(queryUrl, {
           method: 'POST',
           headers: {
@@ -3218,9 +3177,6 @@
           const defaultCount = optionId === '1' ? 27 : optionId === '2' ? 12 : 5;
           const newCount = defaultCount + 1;
 
-          // Get data_source_id for create (Step 2 from migration guide)
-          const createDataSourceId = await getDataSourceId(COUNTER_CONFIG.databaseId);
-          
           const createUrl = `${COUNTER_CONFIG.apiUrl}/pages`;
           const createResponse = await notionFetch(createUrl, {
             method: 'POST',
@@ -3231,7 +3187,7 @@
             body: JSON.stringify({
               parent: {
                 type: 'data_source_id',
-                data_source_id: createDataSourceId
+                data_source_id: COUNTER_CONFIG.dataSourceId
               },
               properties: {
                 'Option': {
@@ -3557,11 +3513,11 @@
       const NOTION_CONFIG = {
         secret: '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',
         databaseId: '2cb988ba141e8025b466e9c0e7e1252f',
+        dataSourceId: '2cb988ba-141e-80ea-94a6-000b77145c35', // Data Source ID for Waitlist
         apiUrl: 'https://api.notion.com/v1/pages',
         queryUrl: 'https://api.notion.com/v1/databases',
         dataSourceUrl: 'https://api.notion.com/v1/data_sources',
-        proxyUrl: '/api/notion-proxy', // Vercel serverless function proxy
-        dataSourceId: null // Will be fetched on first use
+        proxyUrl: '/api/notion-proxy' // Vercel serverless function proxy
       };
 
       // Helper function to make Notion API calls through proxy (for waitlist)
@@ -3578,43 +3534,6 @@
         });
       }
 
-      // Step 1: Discover data_source_id from database_id (Notion API 2025-09-03) for waitlist
-      async function getWaitlistDataSourceId(databaseId) {
-        // Check cache first
-        const cached = localStorage.getItem(`waitlist_data_source_id_${databaseId}`);
-        if (cached) {
-          return cached;
-        }
-
-        try {
-          // Get database info with 2025-09-03 to get data_sources
-          const dbUrl = `https://api.notion.com/v1/databases/${databaseId}`;
-          const response = await notionFetchWaitlist(dbUrl, {
-            method: 'GET',
-            headers: {
-              'Authorization': `Bearer ${NOTION_CONFIG.secret}`,
-              'Notion-Version': '2025-09-03'
-            }
-          });
-
-          if (!response.ok) {
-            throw new Error(`Failed to get data source: ${response.status}`);
-          }
-
-          const data = await response.json();
-          if (data.data_sources && data.data_sources.length > 0) {
-            const dataSourceId = data.data_sources[0].id;
-            // Cache it
-            localStorage.setItem(`waitlist_data_source_id_${databaseId}`, dataSourceId);
-            return dataSourceId;
-          }
-          throw new Error('No data sources found');
-        } catch (error) {
-          console.error('Error getting waitlist data source ID:', error);
-          // Fallback: use database_id as data_source_id (for backward compatibility)
-          return databaseId;
-        }
-      }
 
       // Function to detect browser information
       function getBrowserInfo() {
@@ -3758,9 +3677,6 @@
         };
 
         try {
-          // Get data_source_id for create (Step 2 from migration guide)
-          const dataSourceId = await getWaitlistDataSourceId(NOTION_CONFIG.databaseId);
-          
           const response = await notionFetchWaitlist(NOTION_CONFIG.apiUrl, {
             method: 'POST',
             headers: {
@@ -3770,7 +3686,7 @@
             body: JSON.stringify({
               'parent': {
                 'type': 'data_source_id',
-                'data_source_id': dataSourceId
+                'data_source_id': NOTION_CONFIG.dataSourceId
               },
               'properties': properties
             })
@@ -3811,9 +3727,8 @@
               body.start_cursor = startCursor;
             }
 
-            // Get data_source_id (Step 1 from migration guide)
-            const dataSourceId = await getWaitlistDataSourceId(NOTION_CONFIG.databaseId);
-            const queryUrl = `${NOTION_CONFIG.dataSourceUrl}/${dataSourceId}/query`;
+            // Use data_source_id directly
+            const queryUrl = `${NOTION_CONFIG.dataSourceUrl}/${NOTION_CONFIG.dataSourceId}/query`;
             const response = await notionFetchWaitlist(queryUrl, {
               method: 'POST',
               headers: {
