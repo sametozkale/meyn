@@ -579,9 +579,9 @@
       
       // Notion Integration Configuration
       const NOTION_CONFIG = {
-        secret: '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',
-        databaseId: '2f0988ba-141e-8073-a704-000bc43e6299',
-        dataSourceId: '2f0988ba-141e-8073-a704-000bc43e6299', // Data Source ID for Waitlist (same as database ID for now)
+        secret: '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',
+        databaseId: '2f0988ba141e80599815e262a73f8c24',
+        dataSourceId: '2f0988ba-141e-8073-a704-000bc43e6299', // Data Source ID for Waitlist
         apiUrl: 'https://api.notion.com/v1/pages',
         queryUrl: 'https://api.notion.com/v1/databases',
         dataSourceUrl: 'https://api.notion.com/v1/data_sources',
@@ -612,7 +612,7 @@
           ...restOptions,
           headers: {
             ...headers,
-            'Notion-Version': headers?.['Notion-Version'] || '2022-06-28'
+            'Notion-Version': headers?.['Notion-Version'] || '2025-09-03'
           }
         });
       }
