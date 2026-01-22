@@ -18,23 +18,40 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Get headers from request
+    // Get headers from request (Vercel converts headers to lowercase)
     const headers = {
       'Content-Type': req.headers['content-type'] || 'application/json',
       'Notion-Version': req.headers['notion-version'] || '2022-06-28',
     };
 
-    // Add Authorization header if present
-    if (req.headers.authorization) {
-      headers['Authorization'] = req.headers.authorization;
+    // Add Authorization header if present (Vercel converts to lowercase)
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).json({ error: 'Missing Authorization header' });
+    }
+    headers['Authorization'] = authHeader;
+
+    // Prepare body
+    let body = null;
+    if (req.method !== 'GET' && req.method !== 'OPTIONS') {
+      // Vercel automatically parses JSON body, so stringify if it's an object
+      if (req.body) {
+        body = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
+      }
     }
 
     // Forward the request to Notion API
     const response = await fetch(url, {
       method: req.method,
       headers: headers,
-      body: req.method !== 'GET' && req.method !== 'OPTIONS' ? JSON.stringify(req.body) : null,
+      body: body,
     });
+
+    // Handle response
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: `HTTP ${response.status}` }));
+      return res.status(response.status).json(errorData);
+    }
 
     const data = await response.json();
     return res.status(response.status).json(data);
