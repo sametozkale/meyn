@@ -38,9 +38,13 @@ export default async function handler(req, res) {
     
     headers['Authorization'] = authHeader;
     
+    // Log token prefix for debugging (first 20 chars only for security)
+    const tokenPrefix = authHeader.substring(0, 20);
     console.log('[PROXY] Forwarding to Notion:', url.substring(0, 100));
     console.log('[PROXY] Method:', req.method);
-    console.log('[PROXY] Has Authorization:', !!headers['Authorization']);
+    console.log('[PROXY] Authorization prefix:', tokenPrefix + '...');
+    console.log('[PROXY] Authorization starts with Bearer:', authHeader.startsWith('Bearer '));
+    console.log('[PROXY] All headers being sent:', Object.keys(headers));
 
     // Prepare body
     let body = null;
