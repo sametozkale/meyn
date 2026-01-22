@@ -18,6 +18,10 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Debug: Log incoming headers
+    console.log('Incoming headers:', Object.keys(req.headers));
+    console.log('Authorization header:', req.headers.authorization ? 'Present' : 'Missing');
+    
     // Get headers from request (Vercel converts headers to lowercase)
     const headers = {
       'Content-Type': req.headers['content-type'] || 'application/json',
@@ -27,9 +31,12 @@ export default async function handler(req, res) {
     // Add Authorization header if present (Vercel converts to lowercase)
     const authHeader = req.headers.authorization;
     if (!authHeader) {
-      return res.status(401).json({ error: 'Missing Authorization header' });
+      console.error('Missing Authorization header in proxy');
+      return res.status(401).json({ error: 'Missing Authorization header', debug: { headers: Object.keys(req.headers) } });
     }
     headers['Authorization'] = authHeader;
+    
+    console.log('Forwarding to Notion with headers:', Object.keys(headers));
 
     // Prepare body
     let body = null;
