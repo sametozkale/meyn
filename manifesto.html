@@ -696,9 +696,9 @@
           return { success: false, error: 'Secret not configured' };
         }
         
-        if (!NOTION_CONFIG.databaseId) {
-          console.warn('Notion Database ID is not configured. Please set NOTION_CONFIG.databaseId');
-          return { success: false, error: 'Database ID not configured' };
+        if (!NOTION_CONFIG.dataSourceId) {
+          console.warn('Notion Data Source ID is not configured. Please set NOTION_CONFIG.dataSourceId');
+          return { success: false, error: 'Data Source ID not configured' };
         }
 
         // Validate email
@@ -755,8 +755,8 @@
       // Function to get total waitlist count from Notion (with pagination support)
       async function getTotalWaitlistCount() {
         // Check if secret is placeholder or not configured
-        if (!NOTION_CONFIG.secret || NOTION_CONFIG.secret === 'YOUR_NOTION_WAITLIST_SECRET' || !NOTION_CONFIG.databaseId) {
-          // Fallback to localStorage if secret/database not configured
+        if (!NOTION_CONFIG.secret || NOTION_CONFIG.secret === 'YOUR_NOTION_WAITLIST_SECRET' || !NOTION_CONFIG.dataSourceId) {
+          // Fallback to localStorage if secret/data source not configured
           return parseInt(localStorage.getItem('waitlistCount') || '254');
         }
 

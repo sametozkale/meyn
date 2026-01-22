@@ -3055,8 +3055,8 @@
       try {
         // Check if secret is placeholder or not configured
         if (!COUNTER_CONFIG.secret || COUNTER_CONFIG.secret === 'YOUR_NOTION_COUNTER_SECRET' || 
-            !COUNTER_CONFIG.databaseId || COUNTER_CONFIG.databaseId === 'COUNTER_DATABASE_ID') {
-          // Fallback to localStorage if secret/database not configured
+            !COUNTER_CONFIG.dataSourceId || COUNTER_CONFIG.dataSourceId === 'COUNTER_DATA_SOURCE_ID') {
+          // Fallback to localStorage if secret/data source not configured
           const saved = localStorage.getItem(`counter_${optionId}`);
           return saved ? parseInt(saved) : (optionId === '1' ? 27 : optionId === '2' ? 12 : 5);
         }
@@ -3108,7 +3108,7 @@
     async function incrementCounter(optionId) {
       // Check if secret is placeholder or not configured
       if (!COUNTER_CONFIG.secret || COUNTER_CONFIG.secret === 'YOUR_NOTION_COUNTER_SECRET' || 
-          !COUNTER_CONFIG.databaseId || COUNTER_CONFIG.databaseId === 'COUNTER_DATABASE_ID') {
+          !COUNTER_CONFIG.dataSourceId || COUNTER_CONFIG.dataSourceId === 'COUNTER_DATA_SOURCE_ID') {
         // Fallback to localStorage
         const current = parseInt(localStorage.getItem(`counter_${optionId}`) || (optionId === '1' ? 27 : optionId === '2' ? 12 : 5));
         const newValue = current + 1;
@@ -3604,10 +3604,10 @@
           return { success: false, error: 'Secret not configured' };
         }
         
-        // Check if database ID is configured
-        if (!NOTION_CONFIG.databaseId) {
-          console.warn('Notion Database ID is not configured. Please set NOTION_CONFIG.databaseId');
-          return { success: false, error: 'Database ID not configured' };
+        // Check if data source ID is configured
+        if (!NOTION_CONFIG.dataSourceId) {
+          console.warn('Notion Data Source ID is not configured. Please set NOTION_CONFIG.dataSourceId');
+          return { success: false, error: 'Data Source ID not configured' };
         }
 
         // Validate email
@@ -3709,8 +3709,8 @@
       // Function to get total waitlist count from Notion (with pagination support)
       async function getTotalWaitlistCount() {
         // Check if secret is placeholder or not configured
-        if (!NOTION_CONFIG.secret || NOTION_CONFIG.secret === 'YOUR_NOTION_WAITLIST_SECRET' || !NOTION_CONFIG.databaseId) {
-          // Fallback to localStorage if secret/database not configured
+        if (!NOTION_CONFIG.secret || NOTION_CONFIG.secret === 'YOUR_NOTION_WAITLIST_SECRET' || !NOTION_CONFIG.dataSourceId) {
+          // Fallback to localStorage if secret/data source not configured
           return parseInt(localStorage.getItem('waitlistCount') || '254');
         }
 
