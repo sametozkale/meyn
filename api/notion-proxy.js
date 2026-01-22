@@ -31,16 +31,16 @@ export default async function handler(req, res) {
     // Add Authorization header - check both lowercase and original case
     const authHeader = req.headers.authorization || req.headers.Authorization;
     console.log('Authorization header found:', authHeader ? 'Yes' : 'No');
-    console.log('Authorization value:', authHeader ? authHeader.substring(0, 20) + '...' : 'None');
-    
-    if (!authHeader) {
+    if (authHeader) {
+      console.log('Authorization value (first 30 chars):', authHeader.substring(0, 30));
+      console.log('Authorization starts with Bearer:', authHeader.startsWith('Bearer '));
+    } else {
       console.error('Missing Authorization header in proxy');
       console.error('Available headers:', Object.keys(req.headers));
       return res.status(401).json({ 
         error: 'Missing Authorization header', 
         debug: { 
-          headers: Object.keys(req.headers),
-          receivedHeaders: req.headers
+          headers: Object.keys(req.headers)
         } 
       });
     }
@@ -48,6 +48,7 @@ export default async function handler(req, res) {
     
     console.log('Forwarding to Notion URL:', url);
     console.log('Forwarding with headers:', Object.keys(headers));
+    console.log('Request method:', req.method);
 
     // Prepare body
     let body = null;
