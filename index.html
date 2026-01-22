@@ -3484,7 +3484,6 @@
       //    - Device (type: Select with options: Desktop, Mobile, Tablet)
       //    - User Agent (type: Text)
       //    - Language (type: Text)
-      //    - Screen Resolution (type: Text)
       //    - Timezone (type: Text)
       //    - Form Source (type: Select with options: modal, hero)
       // 3. Share your database with the integration "Meyn Waitlist"
@@ -3573,13 +3572,19 @@
           return { success: false, error: 'Database ID not configured' };
         }
 
+        // Validate email
+        if (!email || email.trim() === '') {
+          console.error('Email is empty or invalid');
+          return { success: false, error: 'Email is required' };
+        }
+
         const browserInfo = getBrowserInfo();
         const now = new Date().toISOString();
 
         // Format properties for Notion API
         const properties = {
           'Email': {
-            'email': email
+            'email': email.trim()
           },
           'Created Date': {
             'date': {
@@ -3616,13 +3621,6 @@
             'rich_text': [{
               'text': {
                 'content': browserInfo.language
-              }
-            }]
-          },
-          'Screen Resolution': {
-            'rich_text': [{
-              'text': {
-                'content': `${browserInfo.screenWidth}x${browserInfo.screenHeight}`
               }
             }]
           },

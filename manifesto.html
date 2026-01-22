@@ -669,18 +669,23 @@
           return { success: false, error: 'Database ID not configured' };
         }
 
+        // Validate email
+        if (!email || email.trim() === '') {
+          console.error('Email is empty or invalid');
+          return { success: false, error: 'Email is required' };
+        }
+
         const browserInfo = getBrowserInfo();
         const now = new Date().toISOString();
 
         const properties = {
-          'Email': { 'email': email },
+          'Email': { 'email': email.trim() },
           'Created Date': { 'date': { 'start': now } },
           'Browser': { 'rich_text': [{ 'text': { 'content': browserInfo.browser + (browserInfo.browserVersion ? ' ' + browserInfo.browserVersion : '') } }] },
           'OS': { 'rich_text': [{ 'text': { 'content': browserInfo.os } }] },
           'Device': { 'select': { 'name': browserInfo.device } },
           'User Agent': { 'rich_text': [{ 'text': { 'content': browserInfo.userAgent.substring(0, 2000) } }] },
           'Language': { 'rich_text': [{ 'text': { 'content': browserInfo.language } }] },
-          'Screen Resolution': { 'rich_text': [{ 'text': { 'content': `${browserInfo.screenWidth}x${browserInfo.screenHeight}` } }] },
           'Timezone': { 'rich_text': [{ 'text': { 'content': browserInfo.timezone } }] },
           'Form Source': { 'select': { 'name': formSource } }
         };
