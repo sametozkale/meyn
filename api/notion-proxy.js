@@ -18,37 +18,29 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Debug: Log incoming headers
-    console.log('Incoming headers:', Object.keys(req.headers));
-    console.log('All headers:', JSON.stringify(req.headers, null, 2));
-    
     // Get headers from request (Vercel converts headers to lowercase)
     const headers = {
       'Content-Type': req.headers['content-type'] || 'application/json',
       'Notion-Version': req.headers['notion-version'] || '2025-09-03',
     };
 
-    // Add Authorization header - check both lowercase and original case
-    const authHeader = req.headers.authorization || req.headers.Authorization;
-    console.log('Authorization header found:', authHeader ? 'Yes' : 'No');
-    if (authHeader) {
-      console.log('Authorization value (first 30 chars):', authHeader.substring(0, 30));
-      console.log('Authorization starts with Bearer:', authHeader.startsWith('Bearer '));
-    } else {
-      console.error('Missing Authorization header in proxy');
-      console.error('Available headers:', Object.keys(req.headers));
+    // Add Authorization header - Vercel converts to lowercase
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader) {
+      console.error('[PROXY ERROR] Missing Authorization header');
+      console.error('[PROXY DEBUG] Available headers:', Object.keys(req.headers));
       return res.status(401).json({ 
-        error: 'Missing Authorization header', 
-        debug: { 
-          headers: Object.keys(req.headers)
-        } 
+        error: 'Missing Authorization header',
+        message: 'Authorization header not found in request'
       });
     }
+    
     headers['Authorization'] = authHeader;
     
-    console.log('Forwarding to Notion URL:', url);
-    console.log('Forwarding with headers:', Object.keys(headers));
-    console.log('Request method:', req.method);
+    console.log('[PROXY] Forwarding to Notion:', url.substring(0, 100));
+    console.log('[PROXY] Method:', req.method);
+    console.log('[PROXY] Has Authorization:', !!headers['Authorization']);
 
     // Prepare body
     let body = null;
@@ -70,6 +62,7 @@ export default async function handler(req, res) {
     // Handle response
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({ message: `HTTP ${response.status}` }));
+      console.error('[PROXY ERROR] Notion API error:', response.status, errorData);
       return res.status(response.status).json(errorData);
     }
 
