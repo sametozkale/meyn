@@ -25,7 +25,7 @@ export default async function handler(req, res) {
     // Get headers from request (Vercel converts headers to lowercase)
     const headers = {
       'Content-Type': req.headers['content-type'] || 'application/json',
-      'Notion-Version': req.headers['notion-version'] || '2022-06-28',
+      'Notion-Version': req.headers['notion-version'] || '2025-09-03',
     };
 
     // Add Authorization header - check both lowercase and original case
