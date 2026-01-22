@@ -3029,8 +3029,23 @@
       secret: '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',
       databaseId: '2f0988ba141e8094b702f9a42671fcaf',
       apiUrl: 'https://api.notion.com/v1',
-      queryUrl: 'https://api.notion.com/v1/databases'
+      queryUrl: 'https://api.notion.com/v1/databases',
+      proxyUrl: '/api/notion-proxy' // Vercel serverless function proxy
     };
+
+    // Helper function to make Notion API calls through proxy
+    async function notionFetch(url, options = {}) {
+      const proxyUrl = `${COUNTER_CONFIG.proxyUrl}?url=${encodeURIComponent(url)}`;
+      const { headers, ...restOptions } = options;
+      
+      return fetch(proxyUrl, {
+        ...restOptions,
+        headers: {
+          ...headers,
+          'Notion-Version': headers?.['Notion-Version'] || '2022-06-28'
+        }
+      });
+    }
 
     // Function to get counter value from Notion
     async function getCounterValue(optionId) {
@@ -3043,12 +3058,12 @@
           return saved ? parseInt(saved) : (optionId === '1' ? 27 : optionId === '2' ? 12 : 5);
         }
 
-        const response = await fetch(`${COUNTER_CONFIG.queryUrl}/${COUNTER_CONFIG.databaseId}/query`, {
+        const notionUrl = `${COUNTER_CONFIG.queryUrl}/${COUNTER_CONFIG.databaseId}/query`;
+        const response = await notionFetch(notionUrl, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${COUNTER_CONFIG.secret}`,
-            'Content-Type': 'application/json',
-            'Notion-Version': '2022-06-28'
+            'Content-Type': 'application/json'
           },
           body: JSON.stringify({
             filter: {
@@ -3099,12 +3114,12 @@
 
       try {
         // First, try to find existing record
-        const queryResponse = await fetch(`${COUNTER_CONFIG.queryUrl}/${COUNTER_CONFIG.databaseId}/query`, {
+        const queryUrl = `${COUNTER_CONFIG.queryUrl}/${COUNTER_CONFIG.databaseId}/query`;
+        const queryResponse = await notionFetch(queryUrl, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${COUNTER_CONFIG.secret}`,
-            'Content-Type': 'application/json',
-            'Notion-Version': '2022-06-28'
+            'Content-Type': 'application/json'
           },
           body: JSON.stringify({
             filter: {
@@ -3129,12 +3144,12 @@
           const currentCount = queryData.results[0].properties?.Count?.number || 0;
           const newCount = currentCount + 1;
 
-          const updateResponse = await fetch(`${COUNTER_CONFIG.apiUrl}/pages/${pageId}`, {
+          const updateUrl = `${COUNTER_CONFIG.apiUrl}/pages/${pageId}`;
+          const updateResponse = await notionFetch(updateUrl, {
             method: 'PATCH',
             headers: {
               'Authorization': `Bearer ${COUNTER_CONFIG.secret}`,
-              'Content-Type': 'application/json',
-              'Notion-Version': '2022-06-28'
+              'Content-Type': 'application/json'
             },
             body: JSON.stringify({
               properties: {
@@ -3158,12 +3173,12 @@
           const defaultCount = optionId === '1' ? 27 : optionId === '2' ? 12 : 5;
           const newCount = defaultCount + 1;
 
-          const createResponse = await fetch(`${COUNTER_CONFIG.apiUrl}/pages`, {
+          const createUrl = `${COUNTER_CONFIG.apiUrl}/pages`;
+          const createResponse = await notionFetch(createUrl, {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${COUNTER_CONFIG.secret}`,
-              'Content-Type': 'application/json',
-              'Notion-Version': '2022-06-28'
+              'Content-Type': 'application/json'
             },
             body: JSON.stringify({
               parent: {
@@ -3494,8 +3509,23 @@
         secret: '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',
         databaseId: '2cb988ba141e8025b466e9c0e7e1252f',
         apiUrl: 'https://api.notion.com/v1/pages',
-        queryUrl: 'https://api.notion.com/v1/databases'
+        queryUrl: 'https://api.notion.com/v1/databases',
+        proxyUrl: '/api/notion-proxy' // Vercel serverless function proxy
       };
+
+      // Helper function to make Notion API calls through proxy (for waitlist)
+      async function notionFetchWaitlist(url, options = {}) {
+        const proxyUrl = `${NOTION_CONFIG.proxyUrl}?url=${encodeURIComponent(url)}`;
+        const { headers, ...restOptions } = options;
+        
+        return fetch(proxyUrl, {
+          ...restOptions,
+          headers: {
+            ...headers,
+            'Notion-Version': headers?.['Notion-Version'] || '2022-06-28'
+          }
+        });
+      }
 
       // Function to detect browser information
       function getBrowserInfo() {
@@ -3639,12 +3669,11 @@
         };
 
         try {
-          const response = await fetch(NOTION_CONFIG.apiUrl, {
+          const response = await notionFetchWaitlist(NOTION_CONFIG.apiUrl, {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${NOTION_CONFIG.secret}`,
-              'Content-Type': 'application/json',
-              'Notion-Version': '2022-06-28'
+              'Content-Type': 'application/json'
             },
             body: JSON.stringify({
               'parent': {
@@ -3689,12 +3718,12 @@
               body.start_cursor = startCursor;
             }
 
-            const response = await fetch(`${NOTION_CONFIG.queryUrl}/${NOTION_CONFIG.databaseId}/query`, {
+            const queryUrl = `${NOTION_CONFIG.queryUrl}/${NOTION_CONFIG.databaseId}/query`;
+            const response = await notionFetchWaitlist(queryUrl, {
               method: 'POST',
               headers: {
                 'Authorization': `Bearer ${NOTION_CONFIG.secret}`,
-                'Content-Type': 'application/json',
-                'Notion-Version': '2022-06-28'
+                'Content-Type': 'application/json'
               },
               body: JSON.stringify(body)
             });
