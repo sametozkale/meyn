@@ -20,7 +20,7 @@ export default async function handler(req, res) {
   try {
     // Debug: Log incoming headers
     console.log('Incoming headers:', Object.keys(req.headers));
-    console.log('Authorization header:', req.headers.authorization ? 'Present' : 'Missing');
+    console.log('All headers:', JSON.stringify(req.headers, null, 2));
     
     // Get headers from request (Vercel converts headers to lowercase)
     const headers = {
@@ -28,15 +28,26 @@ export default async function handler(req, res) {
       'Notion-Version': req.headers['notion-version'] || '2022-06-28',
     };
 
-    // Add Authorization header if present (Vercel converts to lowercase)
-    const authHeader = req.headers.authorization;
+    // Add Authorization header - check both lowercase and original case
+    const authHeader = req.headers.authorization || req.headers.Authorization;
+    console.log('Authorization header found:', authHeader ? 'Yes' : 'No');
+    console.log('Authorization value:', authHeader ? authHeader.substring(0, 20) + '...' : 'None');
+    
     if (!authHeader) {
       console.error('Missing Authorization header in proxy');
-      return res.status(401).json({ error: 'Missing Authorization header', debug: { headers: Object.keys(req.headers) } });
+      console.error('Available headers:', Object.keys(req.headers));
+      return res.status(401).json({ 
+        error: 'Missing Authorization header', 
+        debug: { 
+          headers: Object.keys(req.headers),
+          receivedHeaders: req.headers
+        } 
+      });
     }
     headers['Authorization'] = authHeader;
     
-    console.log('Forwarding to Notion with headers:', Object.keys(headers));
+    console.log('Forwarding to Notion URL:', url);
+    console.log('Forwarding with headers:', Object.keys(headers));
 
     // Prepare body
     let body = null;
