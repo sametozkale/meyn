@@ -1887,7 +1887,7 @@
     }
   </style>
 </head>
-<body class="min-h-screen bg-white flex flex-col items-center font-open text-textMuted pt-24 sm:pt-32 md:pt-[176px] px-4 sm:px-6">
+<body class="min-h-screen bg-[#FDFDFC] flex flex-col items-center font-open text-textMuted pt-24 sm:pt-32 md:pt-[176px] px-4 sm:px-6">
   <div class="relative w-full flex justify-center">
     <header
       class="fixed top-8 left-1/2 -translate-x-1/2 z-50 h-12 inline-flex flex-nowrap items-center gap-4 pl-4 pr-2 py-2 rounded-[200px] border border-black/5 bg-[#14141F] backdrop-blur-md shadow-[0_1px_4px_rgba(0,0,0,0.08),0_0_0_1px_rgba(0,0,0,0.05)] max-w-none"
@@ -2001,7 +2001,7 @@
             </clipPath>
           </defs>
         </svg>
-        <span class="text-xs font-open font-normal leading-3 tracking-[-0.32px] text-[#CCC]">27</span>
+        <span id="counter-option-1" class="text-xs font-open font-normal leading-3 tracking-[-0.32px] text-[#CCC]">27</span>
       </div>
       <div class="option-btn flex items-center gap-1.5 py-2 px-2.5 rounded-[99px] border border-[#F4F4F4] bg-white cursor-pointer" data-option="2">
         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none" class="shrink-0 aspect-square option-icon">
@@ -2014,7 +2014,7 @@
             </clipPath>
           </defs>
         </svg>
-        <span class="text-xs font-open font-normal leading-3 tracking-[-0.32px] text-[#CCC]">12</span>
+        <span id="counter-option-2" class="text-xs font-open font-normal leading-3 tracking-[-0.32px] text-[#CCC]">12</span>
       </div>
       <div class="option-btn flex items-center gap-1.5 py-2 px-2.5 rounded-[99px] border border-[#F4F4F4] bg-white cursor-pointer" data-option="3">
         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none" class="shrink-0 aspect-square option-icon">
@@ -2027,7 +2027,7 @@
             </clipPath>
           </defs>
         </svg>
-        <span class="text-xs font-open font-normal leading-3 tracking-[-0.32px] text-[#CCC]">5</span>
+        <span id="counter-option-3" class="text-xs font-open font-normal leading-3 tracking-[-0.32px] text-[#CCC]">5</span>
       </div>
     </div>
   </div>
@@ -3024,69 +3024,215 @@
       return null;
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
+    // Counter API Configuration
+    // TODO: Replace with your Notion integration secret and database ID
+    const COUNTER_CONFIG = {
+      secret: 'YOUR_NOTION_COUNTER_SECRET',
+      databaseId: '2f0988ba-141e-802b-a007-000b21304e34',
+      apiUrl: 'https://api.notion.com/v1',
+      queryUrl: 'https://api.notion.com/v1/databases'
+    };
+
+    // Function to get counter value from Notion
+    async function getCounterValue(optionId) {
+      try {
+        if (!COUNTER_CONFIG.databaseId || COUNTER_CONFIG.databaseId === 'COUNTER_DATABASE_ID') {
+          // Fallback to localStorage if database not configured
+          const saved = localStorage.getItem(`counter_${optionId}`);
+          return saved ? parseInt(saved) : (optionId === '1' ? 27 : optionId === '2' ? 12 : 5);
+        }
+
+        const response = await fetch(`${COUNTER_CONFIG.queryUrl}/${COUNTER_CONFIG.databaseId}/query`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${COUNTER_CONFIG.secret}`,
+            'Content-Type': 'application/json',
+            'Notion-Version': '2022-06-28'
+          },
+          body: JSON.stringify({
+            filter: {
+              property: 'Option',
+              title: {
+                equals: optionId
+              }
+            }
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch counter');
+        }
+
+        const data = await response.json();
+        if (data.results && data.results.length > 0) {
+          const count = data.results[0].properties?.Count?.number || 0;
+          return count;
+        }
+        
+        // If no record exists, return default
+        return optionId === '1' ? 27 : optionId === '2' ? 12 : 5;
+      } catch (error) {
+        console.error('Error fetching counter:', error);
+        // Fallback to localStorage
+        const saved = localStorage.getItem(`counter_${optionId}`);
+        return saved ? parseInt(saved) : (optionId === '1' ? 27 : optionId === '2' ? 12 : 5);
+      }
+    }
+
+    // Function to increment counter in Notion
+    async function incrementCounter(optionId) {
+      try {
+        if (!COUNTER_CONFIG.databaseId || COUNTER_CONFIG.databaseId === 'COUNTER_DATABASE_ID') {
+          // Fallback to localStorage
+          const current = parseInt(localStorage.getItem(`counter_${optionId}`) || (optionId === '1' ? 27 : optionId === '2' ? 12 : 5));
+          const newValue = current + 1;
+          localStorage.setItem(`counter_${optionId}`, newValue.toString());
+          return newValue;
+        }
+
+        // First, try to find existing record
+        const queryResponse = await fetch(`${COUNTER_CONFIG.queryUrl}/${COUNTER_CONFIG.databaseId}/query`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${COUNTER_CONFIG.secret}`,
+            'Content-Type': 'application/json',
+            'Notion-Version': '2022-06-28'
+          },
+          body: JSON.stringify({
+            filter: {
+              property: 'Option',
+              title: {
+                equals: optionId
+              }
+            }
+          })
+        });
+
+        const queryData = await queryResponse.json();
+        
+        if (queryData.results && queryData.results.length > 0) {
+          // Update existing record
+          const pageId = queryData.results[0].id;
+          const currentCount = queryData.results[0].properties?.Count?.number || 0;
+          const newCount = currentCount + 1;
+
+          await fetch(`${COUNTER_CONFIG.apiUrl}/pages/${pageId}`, {
+            method: 'PATCH',
+            headers: {
+              'Authorization': `Bearer ${COUNTER_CONFIG.secret}`,
+              'Content-Type': 'application/json',
+              'Notion-Version': '2022-06-28'
+            },
+            body: JSON.stringify({
+              properties: {
+                'Count': {
+                  number: newCount
+                }
+              }
+            })
+          });
+
+          return newCount;
+        } else {
+          // Create new record
+          const defaultCount = optionId === '1' ? 27 : optionId === '2' ? 12 : 5;
+          const newCount = defaultCount + 1;
+
+          await fetch(`${COUNTER_CONFIG.apiUrl}/pages`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${COUNTER_CONFIG.secret}`,
+              'Content-Type': 'application/json',
+              'Notion-Version': '2022-06-28'
+            },
+            body: JSON.stringify({
+              parent: {
+                database_id: COUNTER_CONFIG.databaseId
+              },
+              properties: {
+                'Option': {
+                  title: [
+                    {
+                      text: {
+                        content: optionId
+                      }
+                    }
+                  ]
+                },
+                'Count': {
+                  number: newCount
+                }
+              }
+            })
+          });
+
+          return newCount;
+        }
+      } catch (error) {
+        console.error('Error incrementing counter:', error);
+        // Fallback to localStorage
+        const current = parseInt(localStorage.getItem(`counter_${optionId}`) || (optionId === '1' ? 27 : optionId === '2' ? 12 : 5));
+        const newValue = current + 1;
+        localStorage.setItem(`counter_${optionId}`, newValue.toString());
+        return newValue;
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', async function() {
       const optionButtons = document.querySelectorAll('.option-btn');
       
-      // Load saved state from cookies
-      const savedCounts = getCookie('optionCounts') || {};
+      // Load counters from Notion (or localStorage fallback)
+      for (const button of optionButtons) {
+        const optionId = button.getAttribute('data-option');
+        const countSpan = document.getElementById(`counter-option-${optionId}`);
+        
+        if (countSpan) {
+          const count = await getCounterValue(optionId);
+          countSpan.textContent = count;
+        }
+      }
+      
+      // Load saved selected state from cookies
       let savedSelectedOption = getCookie('optionSelected') || null;
       
-      // Restore counts and selected state
-      optionButtons.forEach(button => {
-        const optionId = button.getAttribute('data-option');
-        const countSpan = button.querySelector('span');
-        
-        // Restore count if saved
-        if (savedCounts[optionId] !== undefined) {
-          countSpan.textContent = savedCounts[optionId];
+      // Restore selected state
+      if (savedSelectedOption) {
+        const selectedButton = document.querySelector(`.option-btn[data-option="${savedSelectedOption}"]`);
+        if (selectedButton) {
+          selectedButton.classList.add('selected');
         }
-        
-        // Restore selected state if saved
-        if (savedSelectedOption === optionId) {
-          button.classList.add('selected');
-        }
-      });
-      
-      // Helper function to update count
-      function updateCount(optionId, increment) {
-        const button = document.querySelector(`.option-btn[data-option="${optionId}"]`);
-        if (!button) return;
-        
-        const countSpan = button.querySelector('span');
-        const currentCount = parseInt(countSpan.textContent) || 0;
-        const newCount = Math.max(0, currentCount + (increment ? 1 : -1));
-        countSpan.textContent = newCount;
-        savedCounts[optionId] = newCount;
       }
       
       // Handle option button clicks
       optionButtons.forEach(button => {
-        button.addEventListener('click', function() {
+        button.addEventListener('click', async function() {
           const optionId = this.getAttribute('data-option');
           const isSelected = this.classList.contains('selected');
           
           if (isSelected) {
-            // If already selected, deselect it and decrement count
+            // If already selected, deselect it
             this.classList.remove('selected');
-            updateCount(optionId, false);
             savedSelectedOption = null;
           } else {
             // If not selected, deselect any previously selected option first
             const previouslySelected = document.querySelector('.option-btn.selected');
             if (previouslySelected) {
-              const prevOptionId = previouslySelected.getAttribute('data-option');
               previouslySelected.classList.remove('selected');
-              updateCount(prevOptionId, false);
             }
             
             // Select the clicked option and increment count
             this.classList.add('selected');
-            updateCount(optionId, true);
             savedSelectedOption = optionId;
+            
+            // Increment counter
+            const countSpan = document.getElementById(`counter-option-${optionId}`);
+            if (countSpan) {
+              const newCount = await incrementCounter(optionId);
+              countSpan.textContent = newCount;
+            }
           }
           
-          // Save counts and selected state to cookies
-          setCookie('optionCounts', savedCounts);
+          // Save selected state to cookies
           setCookie('optionSelected', savedSelectedOption);
         });
       });
@@ -3318,10 +3464,12 @@
       // 4. Get your Database ID from the URL (the part after the last slash, before the ?)
       //    Example: https://www.notion.so/workspace/DATABASE_ID?v=...
       // 5. Paste the Database ID below
+      // TODO: Replace with your Notion integration secret
       const NOTION_CONFIG = {
-        secret: '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',
-        databaseId: 'Meyn-Waitlist-2cb988ba141e8025b466e9c0e7e1252f',
-        apiUrl: 'https://api.notion.com/v1/pages'
+        secret: 'YOUR_NOTION_WAITLIST_SECRET',
+        databaseId: '2cb988ba-141e-80ea-94a6-000b77145c35',
+        apiUrl: 'https://api.notion.com/v1/pages',
+        queryUrl: 'https://api.notion.com/v1/databases'
       };
 
       // Function to detect browser information
@@ -3490,22 +3638,54 @@
         }
       }
 
-      // Function to increment waitlist counter
-      function incrementWaitlistCounter() {
-        // Get current count from localStorage or start with 254
-        let currentCount = parseInt(localStorage.getItem('waitlistCount') || '254');
-        
-        // Increment the count
-        currentCount += 1;
-        
-        // Save to localStorage
-        localStorage.setItem('waitlistCount', currentCount.toString());
-        
-        // Update both counter elements
+      // Function to get total waitlist count from Notion (with pagination support)
+      async function getTotalWaitlistCount() {
+        try {
+          let totalCount = 0;
+          let hasMore = true;
+          let startCursor = null;
+
+          while (hasMore) {
+            const body = {
+              page_size: 100
+            };
+            if (startCursor) {
+              body.start_cursor = startCursor;
+            }
+
+            const response = await fetch(`${NOTION_CONFIG.queryUrl}/${NOTION_CONFIG.databaseId}/query`, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${NOTION_CONFIG.secret}`,
+                'Content-Type': 'application/json',
+                'Notion-Version': '2022-06-28'
+              },
+              body: JSON.stringify(body)
+            });
+
+            if (!response.ok) {
+              throw new Error('Failed to fetch waitlist count');
+            }
+
+            const data = await response.json();
+            totalCount += data.results ? data.results.length : 0;
+            hasMore = data.has_more || false;
+            startCursor = data.next_cursor || null;
+          }
+
+          return totalCount;
+        } catch (error) {
+          console.error('Error fetching total waitlist count:', error);
+          // Fallback to localStorage if API fails
+          return parseInt(localStorage.getItem('waitlistCount') || '254');
+        }
+      }
+
+      // Function to update waitlist counter display
+      function updateWaitlistCounter(count) {
         const heroCounter = document.getElementById('hero-counter');
         const modalCounter = document.getElementById('modal-counter');
-        
-        const newText = `${currentCount}+ people already in the line`;
+        const newText = `${count}+ people already in the line`;
         
         if (heroCounter) {
           heroCounter.textContent = newText;
@@ -3514,25 +3694,23 @@
           modalCounter.textContent = newText;
         }
         
-        return currentCount;
+        // Also save to localStorage as cache
+        localStorage.setItem('waitlistCount', count.toString());
+      }
+
+      // Function to increment waitlist counter (now fetches from Notion)
+      async function incrementWaitlistCounter() {
+        // Fetch fresh count from Notion
+        const count = await getTotalWaitlistCount();
+        updateWaitlistCounter(count);
+        return count;
       }
 
       // Initialize counter on page load
-      function initializeCounter() {
-        const savedCount = localStorage.getItem('waitlistCount');
-        if (savedCount) {
-          const count = parseInt(savedCount);
-          const heroCounter = document.getElementById('hero-counter');
-          const modalCounter = document.getElementById('modal-counter');
-          const newText = `${count}+ people already in the line`;
-          
-          if (heroCounter) {
-            heroCounter.textContent = newText;
-          }
-          if (modalCounter) {
-            modalCounter.textContent = newText;
-          }
-        }
+      async function initializeCounter() {
+        // Fetch fresh count from Notion
+        const count = await getTotalWaitlistCount();
+        updateWaitlistCounter(count);
       }
 
       // Initialize counter when page loads
@@ -3545,7 +3723,7 @@
       }
 
       // Function to show "get ahead" section for hero form
-      function showHeroGetAhead(email) {
+      async function showHeroGetAhead(email) {
         const heroForm = document.getElementById('hero-waitlist-form');
         const heroGetAhead = document.getElementById('hero-get-ahead');
         const heroCounter = document.getElementById('hero-counter');
@@ -3555,8 +3733,8 @@
         const heroUserId = document.getElementById('hero-user-id');
         
         if (heroForm && heroGetAhead) {
-          // Get waitlist position (counter value represents user's position)
-          const waitlistCount = parseInt(localStorage.getItem('waitlistCount') || '254');
+          // Get waitlist position (fetch from Notion)
+          const waitlistCount = await getTotalWaitlistCount();
           const userPosition = '#' + waitlistCount.toString();
           
           // Update H1 title
@@ -3587,7 +3765,7 @@
       }
 
       // Function to show "get ahead" section for modal form
-      function showModalGetAhead(email) {
+      async function showModalGetAhead(email) {
         const modalForm = document.getElementById('waitlist-form');
         const modalGetAheadContent = document.getElementById('modal-get-ahead-content');
         const modalCounter = document.getElementById('modal-counter');
@@ -3597,8 +3775,8 @@
         const modalUserId = document.getElementById('modal-user-id');
         
         if (modalForm && modalGetAheadContent) {
-          // Get waitlist position (counter value represents user's position)
-          const waitlistCount = parseInt(localStorage.getItem('waitlistCount') || '254');
+          // Get waitlist position (fetch from Notion)
+          const waitlistCount = await getTotalWaitlistCount();
           const userPosition = '#' + waitlistCount.toString();
           
           // Update modal title and description
@@ -3658,10 +3836,10 @@
               const notionResult = await addToNotion(email, 'modal');
               
               // Increment counter after submission (regardless of Notion result)
-              incrementWaitlistCounter();
+              await incrementWaitlistCounter();
               
               // Show get ahead section
-              showModalGetAhead(email);
+              await showModalGetAhead(email);
               
               if (notionResult.success) {
                 toast('Successfully joined!', 'success', 'We\'ll notify you when we launch.');
@@ -3673,9 +3851,9 @@
             } catch (error) {
               console.error('Error:', error);
               // Increment counter even if there's an error (user sees success message)
-              incrementWaitlistCounter();
+              await incrementWaitlistCounter();
               // Show get ahead section even on error
-              showModalGetAhead(email);
+              await showModalGetAhead(email);
               toast('Successfully joined!', 'success', 'We\'ll notify you when we launch.');
             } finally {
               submitButton.disabled = false;
@@ -3710,10 +3888,10 @@
               const notionResult = await addToNotion(email, 'hero');
               
               // Increment counter after submission (regardless of Notion result)
-              incrementWaitlistCounter();
+              await incrementWaitlistCounter();
               
               // Show get ahead section
-              showHeroGetAhead(email);
+              await showHeroGetAhead(email);
               
               if (notionResult.success) {
                 toast('Successfully joined!', 'success', 'We\'ll notify you when we launch.');
@@ -3725,9 +3903,9 @@
             } catch (error) {
               console.error('Error:', error);
               // Increment counter even if there's an error (user sees success message)
-              incrementWaitlistCounter();
+              await incrementWaitlistCounter();
               // Show get ahead section even on error
-              showHeroGetAhead(email);
+              await showHeroGetAhead(email);
               toast('Successfully joined!', 'success', 'We\'ll notify you when we launch.');
             } finally {
               if (submitButton) {

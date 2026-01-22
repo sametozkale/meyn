@@ -144,7 +144,7 @@
     .investor-text:nth-child(15) { transition-delay: 1.5s; }
   </style>
 </head>
-<body class="min-h-screen bg-white flex flex-col items-center font-open text-textMuted pt-24 sm:pt-32 md:pt-[176px] px-4 sm:px-6">
+<body class="min-h-screen bg-[#FDFDFC] flex flex-col items-center font-open text-textMuted pt-24 sm:pt-32 md:pt-[176px] px-4 sm:px-6">
   <div class="relative w-full flex justify-center">
     <header
       class="fixed top-8 left-1/2 -translate-x-1/2 z-50 h-12 inline-flex flex-nowrap items-center gap-4 pl-4 pr-2 py-2 rounded-[200px] border border-black/5 bg-[#14141F] backdrop-blur-md shadow-[0_1px_4px_rgba(0,0,0,0.08),0_0_0_1px_rgba(0,0,0,0.05)] max-w-none"
@@ -578,10 +578,12 @@
       }
       
       // Notion Integration Configuration
+      // TODO: Replace with your Notion integration secret
       const NOTION_CONFIG = {
-        secret: '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',
-        databaseId: 'Meyn-Waitlist-2cb988ba141e8025b466e9c0e7e1252f',
-        apiUrl: 'https://api.notion.com/v1/pages'
+        secret: 'YOUR_NOTION_WAITLIST_SECRET',
+        databaseId: '2cb988ba-141e-80ea-94a6-000b77145c35',
+        apiUrl: 'https://api.notion.com/v1/pages',
+        queryUrl: 'https://api.notion.com/v1/databases'
       };
 
       // Function to detect browser information
@@ -696,40 +698,81 @@
         }
       }
 
-      // Function to increment waitlist counter
-      function incrementWaitlistCounter() {
-        let currentCount = parseInt(localStorage.getItem('waitlistCount') || '254');
-        currentCount += 1;
-        localStorage.setItem('waitlistCount', currentCount.toString());
-        
+      // Function to get total waitlist count from Notion (with pagination support)
+      async function getTotalWaitlistCount() {
+        try {
+          let totalCount = 0;
+          let hasMore = true;
+          let startCursor = null;
+
+          while (hasMore) {
+            const body = {
+              page_size: 100
+            };
+            if (startCursor) {
+              body.start_cursor = startCursor;
+            }
+
+            const response = await fetch(`${NOTION_CONFIG.queryUrl}/${NOTION_CONFIG.databaseId}/query`, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${NOTION_CONFIG.secret}`,
+                'Content-Type': 'application/json',
+                'Notion-Version': '2022-06-28'
+              },
+              body: JSON.stringify(body)
+            });
+
+            if (!response.ok) {
+              throw new Error('Failed to fetch waitlist count');
+            }
+
+            const data = await response.json();
+            totalCount += data.results ? data.results.length : 0;
+            hasMore = data.has_more || false;
+            startCursor = data.next_cursor || null;
+          }
+
+          return totalCount;
+        } catch (error) {
+          console.error('Error fetching total waitlist count:', error);
+          // Fallback to localStorage if API fails
+          return parseInt(localStorage.getItem('waitlistCount') || '254');
+        }
+      }
+
+      // Function to update waitlist counter display
+      function updateWaitlistCounter(count) {
         const modalCounter = document.getElementById('modal-counter');
-        const newText = `${currentCount}+ people already in the line`;
+        const newText = `${count}+ people already in the line`;
         
         if (modalCounter) {
           modalCounter.textContent = newText;
         }
         
-        return currentCount;
+        // Also save to localStorage as cache
+        localStorage.setItem('waitlistCount', count.toString());
+      }
+
+      // Function to increment waitlist counter (now fetches from Notion)
+      async function incrementWaitlistCounter() {
+        // Fetch fresh count from Notion
+        const count = await getTotalWaitlistCount();
+        updateWaitlistCounter(count);
+        return count;
       }
 
       // Initialize counter on page load
-      function initializeCounter() {
-        const savedCount = localStorage.getItem('waitlistCount');
-        if (savedCount) {
-          const count = parseInt(savedCount);
-          const modalCounter = document.getElementById('modal-counter');
-          const newText = `${count}+ people already in the line`;
-          
-          if (modalCounter) {
-            modalCounter.textContent = newText;
-          }
-        }
+      async function initializeCounter() {
+        // Fetch fresh count from Notion
+        const count = await getTotalWaitlistCount();
+        updateWaitlistCounter(count);
       }
 
       initializeCounter();
 
       // Function to show "get ahead" section for modal form
-      function showModalGetAhead(email) {
+      async function showModalGetAhead(email) {
         const modalForm = document.getElementById('waitlist-form');
         const modalGetAheadContent = document.getElementById('modal-get-ahead-content');
         const modalCounter = document.getElementById('modal-counter');
@@ -739,7 +782,8 @@
         const modalUserId = document.getElementById('modal-user-id');
         
         if (modalForm && modalGetAheadContent) {
-          const waitlistCount = parseInt(localStorage.getItem('waitlistCount') || '254');
+          // Get waitlist position (fetch from Notion)
+          const waitlistCount = await getTotalWaitlistCount();
           const userPosition = '#' + waitlistCount.toString();
           
           if (modalTitle) {
@@ -785,8 +829,8 @@
 
             try {
               const notionResult = await addToNotion(email, 'modal');
-              incrementWaitlistCounter();
-              showModalGetAhead(email);
+              await incrementWaitlistCounter();
+              await showModalGetAhead(email);
               
               if (notionResult.success) {
                 toast('Successfully joined!', 'success', 'We\'ll notify you when we launch.');
@@ -796,8 +840,8 @@
               }
             } catch (error) {
               console.error('Error:', error);
-              incrementWaitlistCounter();
-              showModalGetAhead(email);
+              await incrementWaitlistCounter();
+              await showModalGetAhead(email);
               toast('Successfully joined!', 'success', 'We\'ll notify you when we launch.');
             } finally {
               submitButton.disabled = false;
