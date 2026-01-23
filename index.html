@@ -3585,29 +3585,22 @@
           
           if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
-            console.error('[Add Email] API error:', response.status, errorData);
-            throw new Error(errorData.error || `Failed to add to waitlist (status ${response.status})`);
-          }
-          
-          const data = await response.json();
-          console.log('[Add Email] Success:', data);
-
-          if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
             let errorMsg = errorData.error || `Failed to add to waitlist (status ${response.status})`;
             // Add more context for 403 errors
             if (response.status === 403) {
               errorMsg = errorData.error || 'Permission denied. Please ensure the Google Sheet is shared with the Service Account.';
             }
+            console.error('[Add Email] API error:', response.status, errorData);
             throw new Error(errorMsg);
           }
-
-          const data = await response.json();
+          
+          const responseData = await response.json();
+          console.log('[Add Email] Success:', responseData);
           
           // Use count from API response, or calculate from current count + 1
           let newCount;
-          if (data.count !== undefined && data.count !== null) {
-            newCount = parseInt(data.count);
+          if (responseData.count !== undefined && responseData.count !== null) {
+            newCount = parseInt(responseData.count);
           } else {
             // Fallback: get current count and increment
             const currentCount = await getTotalWaitlistCount().catch(() => {
@@ -3626,7 +3619,7 @@
           updateWaitlistCounter(newCount);
           localStorage.setItem('waitlistCount', newCount.toString());
           
-          return { success: true, data: data, count: newCount };
+          return { success: true, data: responseData, count: newCount };
         } catch (error) {
           console.error('Error adding to waitlist:', error);
           // Fallback: increment local counter
