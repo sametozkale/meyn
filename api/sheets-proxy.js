@@ -160,7 +160,7 @@ export default async function handler(req, res) {
         break;
       }
 
-      case 'incrementCounter':
+      case 'incrementCounter': {
         // Increment counter for a specific option - now handled via waitlist sheet
         // This action just returns the updated count (actual increment happens when email is added)
         if (!optionId) {
@@ -198,7 +198,7 @@ export default async function handler(req, res) {
         
         // Count rows with matching Selected Option
         const incRows = await incCounterSheet.getRows();
-        let addedCount = 0;
+        let incAddedCount = 0;
         
         if (incSelectedOptionIndex !== -1) {
           incRows.forEach((row) => {
@@ -220,7 +220,7 @@ export default async function handler(req, res) {
               selectedOption = String(selectedOption || '').trim();
               
               if (selectedOption === optionId || selectedOption === parseInt(optionId).toString()) {
-                addedCount++;
+                incAddedCount++;
               }
             } catch (e) {
               console.error(`[incrementCounter] Error processing row:`, e);
@@ -229,11 +229,12 @@ export default async function handler(req, res) {
         }
         
         // Display count = Base value + Added count
-        const displayCountAfterIncrement = incBaseValue + addedCount;
-        console.log(`[incrementCounter] Option ${optionId}: Base=${incBaseValue}, Added=${addedCount}, Display=${displayCountAfterIncrement}`);
+        const displayCountAfterIncrement = incBaseValue + incAddedCount;
+        console.log(`[incrementCounter] Option ${optionId}: Base=${incBaseValue}, Added=${incAddedCount}, Display=${displayCountAfterIncrement}`);
         
         result = { count: displayCountAfterIncrement };
         break;
+      }
 
       case 'addToWaitlist': {
         // Add email to waitlist (or update existing entry if email was empty)
