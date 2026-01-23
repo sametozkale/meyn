@@ -3481,7 +3481,13 @@
           }
 
           const data = await response.json();
-          return { success: true, data: data };
+          const newCount = data.count || (parseInt(localStorage.getItem('waitlistCount') || '254') + 1);
+          
+          // Update counter display immediately with new count
+          updateWaitlistCounter(newCount);
+          localStorage.setItem('waitlistCount', newCount.toString());
+          
+          return { success: true, data: data, count: newCount };
         } catch (error) {
           console.error('Error adding to waitlist:', error);
           // Fallback: increment local counter
@@ -3682,16 +3688,12 @@
             submitButton.textContent = 'Joining...';
 
             try {
-              // Add to Google Sheets
+              // Add to Google Sheets (counter is updated inside addToWaitlist function)
               const result = await addToWaitlist(email, 'modal');
               
-              if (result.success) {
-                // If Google Sheets succeeded, fetch fresh count (will include new email)
-                await incrementWaitlistCounter();
-              } else {
+              if (!result.success) {
                 // If Google Sheets failed, increment local counter as fallback
                 console.error('Google Sheets error:', result.error);
-                incrementWaitlistCounterLocal();
               }
               
               // Show get ahead section
@@ -3735,16 +3737,12 @@
             }
 
             try {
-              // Add to Google Sheets
+              // Add to Google Sheets (counter is updated inside addToWaitlist function)
               const result = await addToWaitlist(email, 'hero');
               
-              if (result.success) {
-                // If Google Sheets succeeded, fetch fresh count (will include new email)
-                await incrementWaitlistCounter();
-              } else {
+              if (!result.success) {
                 // If Google Sheets failed, increment local counter as fallback
                 console.error('Google Sheets error:', result.error);
-                incrementWaitlistCounterLocal();
               }
               
               // Show get ahead section

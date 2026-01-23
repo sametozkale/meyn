@@ -154,14 +154,32 @@ export default async function handler(req, res) {
           'Form Source': values.formSource || 'modal'
         });
         
-        result = { success: true };
+        // Get updated count after adding email
+        const rows = await waitlistSheet.getRows();
+        const emailRows = rows.filter(row => {
+          const email = row.get('Email') || row.Email || '';
+          return email.trim() !== '' && email.toLowerCase() !== 'email';
+        });
+        const newCount = emailRows.length > 0 ? emailRows.length : 254;
+        
+        result = { success: true, count: newCount };
         break;
 
       case 'getWaitlistCount':
-        // Get total waitlist count
+        // Get total waitlist count (excluding header row)
         const countSheet = doc.sheetsByIndex[1] || doc.sheetsByIndex[0];
         const rows = await countSheet.getRows();
-        const totalCount = rows.length;
+        
+        // Count only rows with email (skip header row and empty rows)
+        let totalCount = 254; // Default value
+        if (rows.length > 0) {
+          // Filter out header row and empty email rows
+          const emailRows = rows.filter(row => {
+            const email = row.get('Email') || row.Email || '';
+            return email.trim() !== '' && email.toLowerCase() !== 'email';
+          });
+          totalCount = emailRows.length > 0 ? emailRows.length : 254;
+        }
         
         result = { count: totalCount };
         break;
