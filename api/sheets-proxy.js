@@ -36,14 +36,25 @@ export default async function handler(req, res) {
       console.error('[SHEETS PROXY ERROR] Missing Google Service Account credentials');
       return res.status(500).json({ 
         error: 'Google Service Account credentials not configured',
-        message: 'Please set GOOGLE_PRIVATE_KEY and GOOGLE_CLIENT_EMAIL environment variables'
+        message: 'Please set GOOGLE_PRIVATE_KEY and GOOGLE_CLIENT_EMAIL environment variables',
+        hasPrivateKey: !!privateKey,
+        hasClientEmail: !!clientEmail
       });
+    }
+
+    // Format private key - handle both escaped and unescaped newlines
+    let formattedKey = privateKey;
+    // Replace \\n with actual newlines
+    formattedKey = formattedKey.replace(/\\n/g, '\n');
+    // If still no newlines, try replacing literal \n strings
+    if (!formattedKey.includes('\n')) {
+      formattedKey = formattedKey.replace(/\\\\n/g, '\n');
     }
 
     // Authenticate with Google Sheets API
     const jwt = new JWT({
       email: clientEmail,
-      key: privateKey.replace(/\\n/g, '\n'),
+      key: formattedKey,
       scopes: ['https://www.googleapis.com/auth/spreadsheets'],
     });
 
@@ -162,9 +173,27 @@ export default async function handler(req, res) {
     return res.status(200).json(result);
   } catch (error) {
     console.error('[SHEETS PROXY ERROR]', error);
-    return res.status(500).json({ 
-      error: error.message || 'Google Sheets API error',
-      details: error.toString()
+    
+    // Check for specific error types
+    let statusCode = 500;
+    let errorMessage = error.message || 'Google Sheets API error';
+    
+    if (error.message && error.message.includes('403')) {
+      statusCode = 403;
+      errorMessage = 'Permission denied. Please ensure the Google Sheet is shared with the Service Account email: ' + (process.env.GOOGLE_CLIENT_EMAIL || 'meyn-150@meyn-485212.iam.gserviceaccount.com');
+    } else if (error.message && error.message.includes('401')) {
+      statusCode = 401;
+      errorMessage = 'Authentication failed. Please check GOOGLE_PRIVATE_KEY and GOOGLE_CLIENT_EMAIL environment variables.';
+    } else if (error.message && error.message.includes('404')) {
+      statusCode = 404;
+      errorMessage = 'Sheet not found. Please check SHEET_ID_WAITLIST environment variable.';
+    }
+    
+    return res.status(statusCode).json({ 
+      error: errorMessage,
+      details: error.toString(),
+      action: req.body?.action,
+      sheetId: targetSheetId
     });
   }
 }
