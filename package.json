@@ -1,0 +1,10 @@
+{
+  "name": "meyn-ai",
+  "version": "1.0.0",
+  "description": "Meyn AI website",
+  "type": "module",
+  "dependencies": {
+    "google-spreadsheet": "^4.1.1",
+    "google-auth-library": "^9.0.0"
+  }
+}

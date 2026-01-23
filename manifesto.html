@@ -587,9 +587,9 @@
         waitlistModalClose.addEventListener('click', closeWaitlistModal);
       }
       
-      // Google Sheets Configuration (to be configured)
+      // Google Sheets Configuration
       const SHEETS_CONFIG = {
-        waitlistSheetId: '', // Will be set when Google Sheets is configured
+        sheetId: '1-DzUV1pV-QMfnyFDTaUNtXDqpkrc7RoYXsZ3UxXFB9U', // Waitlist sheet
         proxyUrl: '/api/sheets-proxy' // Vercel serverless function proxy
       };
 
@@ -654,7 +654,7 @@
         };
       }
 
-      // Function to add email to Google Sheets waitlist (placeholder - will be implemented)
+      // Function to add email to Google Sheets waitlist
       async function addToWaitlist(email, formSource = 'modal') {
         // Validate email
         if (!email || email.trim() === '') {
@@ -662,17 +662,76 @@
           return { success: false, error: 'Email is required' };
         }
 
-        // TODO: Implement Google Sheets API call
-        // For now, just increment local counter
-        incrementWaitlistCounterLocal();
-        return { success: true };
+        const browserInfo = getBrowserInfo();
+        const now = new Date().toISOString();
+
+        try {
+          const response = await fetch(SHEETS_CONFIG.proxyUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              action: 'addToWaitlist',
+              sheetId: SHEETS_CONFIG.sheetId,
+              values: {
+                email: email.trim(),
+                createdDate: now,
+                browser: browserInfo.browser + (browserInfo.browserVersion ? ' ' + browserInfo.browserVersion : ''),
+                os: browserInfo.os,
+                device: browserInfo.device,
+                userAgent: browserInfo.userAgent.substring(0, 2000),
+                language: browserInfo.language,
+                timezone: browserInfo.timezone,
+                formSource: formSource
+              }
+            })
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.error || `Failed to add to waitlist (status ${response.status})`);
+          }
+
+          const data = await response.json();
+          return { success: true, data: data };
+        } catch (error) {
+          console.error('Error adding to waitlist:', error);
+          // Fallback: increment local counter
+          incrementWaitlistCounterLocal();
+          return { success: false, error: error.message };
+        }
       }
 
-      // Function to get total waitlist count from Google Sheets (placeholder - will be implemented)
+      // Function to get total waitlist count from Google Sheets
       async function getTotalWaitlistCount() {
-        // TODO: Implement Google Sheets API call
-        // For now, return from localStorage
-        return parseInt(localStorage.getItem('waitlistCount') || '254');
+        try {
+          const response = await fetch(SHEETS_CONFIG.proxyUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              action: 'getWaitlistCount',
+              sheetId: SHEETS_CONFIG.sheetId
+            })
+          });
+
+          if (!response.ok) {
+            throw new Error(`API request failed with status ${response.status}`);
+          }
+
+          const data = await response.json();
+          const count = data.count || 254;
+          
+          // Save to localStorage as cache
+          localStorage.setItem('waitlistCount', count.toString());
+          return count;
+        } catch (error) {
+          console.error('Error fetching total waitlist count:', error);
+          // Fallback to localStorage if API fails
+          return parseInt(localStorage.getItem('waitlistCount') || '254');
+        }
       }
 
       // Function to update waitlist counter display
