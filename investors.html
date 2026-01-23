@@ -692,31 +692,28 @@
             throw new Error(errorMsg);
           }
 
-          const data = await response.json();
+          const responseData = await response.json();
           
-          // Use count from API response, or calculate from current count + 1
-          let newCount;
-          if (data.count !== undefined && data.count !== null) {
-            newCount = parseInt(data.count);
-          } else {
-            // Fallback: get current count and increment
-            const currentCount = await getTotalWaitlistCount().catch(() => {
-              const cached = parseInt(localStorage.getItem('waitlistCount') || '254');
-              return cached;
-            });
-            newCount = currentCount + 1;
+          // API returns display count (real count + 254), use it directly
+          if (responseData.count !== undefined && responseData.count !== null) {
+            const newCount = parseInt(responseData.count);
+            if (!isNaN(newCount) && newCount > 0) {
+              // Update counter display immediately with new count
+              updateWaitlistCounter(newCount);
+              localStorage.setItem('waitlistCount', newCount.toString());
+              return { success: true, data: responseData, count: newCount };
+            }
           }
           
-          // Ensure we have a valid count
-          if (isNaN(newCount) || newCount <= 0) {
-            newCount = 254; // Absolute fallback
-          }
+          // Fallback: fetch latest count if API didn't return valid count
+          const currentCount = await getTotalWaitlistCount().catch(() => {
+            const cached = parseInt(localStorage.getItem('waitlistCount') || '254');
+            return cached;
+          });
+          updateWaitlistCounter(currentCount);
+          localStorage.setItem('waitlistCount', currentCount.toString());
           
-          // Update counter display immediately with new count
-          updateWaitlistCounter(newCount);
-          localStorage.setItem('waitlistCount', newCount.toString());
-          
-          return { success: true, data: data, count: newCount };
+          return { success: true, data: responseData, count: currentCount };
         } catch (error) {
           console.error('Error adding to waitlist:', error);
           // Fallback: increment local counter
@@ -818,7 +815,7 @@
         return count;
       }
 
-      // Function to manually increment waitlist counter (for fallback when Notion fails)
+      // Function to manually increment waitlist counter (for fallback when Google Sheets fails)
       function incrementWaitlistCounterLocal() {
         // Get current count from localStorage, but don't use default 254 if we have a real value
         const cached = localStorage.getItem('waitlistCount');
@@ -843,9 +840,16 @@
 
       // Initialize counter on page load
       async function initializeCounter() {
-        // Fetch fresh count from Notion
-        const count = await getTotalWaitlistCount();
-        updateWaitlistCounter(count);
+        // Fetch fresh count from Google Sheets
+        try {
+          const count = await getTotalWaitlistCount();
+          updateWaitlistCounter(count);
+        } catch (error) {
+          console.error('Error initializing waitlist counter:', error);
+          // Use cached value if available
+          const cached = parseInt(localStorage.getItem('waitlistCount') || '254');
+          updateWaitlistCounter(cached);
+        }
       }
 
       initializeCounter();

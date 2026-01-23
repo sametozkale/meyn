@@ -3203,7 +3203,7 @@
           // Select the clicked option
           this.classList.add('selected');
           
-          // Add counter entry to waitlist sheet (without email, email will be added later if visitor submits)
+          // Add counter entry to waitlist sheet (without email)
           try {
             const browserInfo = getBrowserInfo();
             const now = new Date().toISOString();
@@ -3219,7 +3219,7 @@
                 action: 'addToWaitlist',
                 sheetId: SHEETS_CONFIG.sheetId,
                 values: {
-                  email: '', // Empty email for now, will be updated when email is submitted
+                  email: '', // Empty email for counter clicks
                   createdDate: now,
                   browser: browserInfo.browser + (browserInfo.browserVersion ? ' ' + browserInfo.browserVersion : ''),
                   os: browserInfo.os,
@@ -3241,27 +3241,32 @@
             
             const data = await response.json();
             console.log('[Counter Click] Success:', data);
+            
+            // Only update counter display if sheet write succeeded
+            const countSpan = document.getElementById(`counter-option-${optionId}`);
+            if (countSpan) {
+              // Fetch latest count from API (includes the newly added row)
+              const newCount = await incrementCounter(optionId);
+              countSpan.textContent = newCount;
+            }
+            
+            // Disable all buttons after successful click
+            optionButtons.forEach(btn => {
+              btn.style.opacity = '0.5';
+              btn.style.cursor = 'not-allowed';
+              btn.style.pointerEvents = 'none';
+            });
+            
+            // Keep the clicked button visually selected but disabled
+            this.style.opacity = '1';
           } catch (error) {
             console.error('[Counter Click] Error adding counter entry to waitlist:', error);
-            // Don't block UI, but log the error
+            // Re-enable buttons on error so user can try again
+            alert('Failed to save your selection. Please try again.');
+            this.classList.remove('selected');
+            localStorage.removeItem('counterClicked');
+            localStorage.removeItem('counterClickedOption');
           }
-          
-          // Increment counter (only once per visitor)
-          const countSpan = document.getElementById(`counter-option-${optionId}`);
-          if (countSpan) {
-            const newCount = await incrementCounter(optionId);
-            countSpan.textContent = newCount;
-          }
-          
-          // Disable all buttons after click
-          optionButtons.forEach(btn => {
-            btn.style.opacity = '0.5';
-            btn.style.cursor = 'not-allowed';
-            btn.style.pointerEvents = 'none';
-          });
-          
-          // Keep the clicked button visually selected but disabled
-          this.style.opacity = '1';
         });
       });
 
@@ -3597,29 +3602,26 @@
           const responseData = await response.json();
           console.log('[Add Email] Success:', responseData);
           
-          // Use count from API response, or calculate from current count + 1
-          let newCount;
+          // API returns display count (real count + 254), use it directly
           if (responseData.count !== undefined && responseData.count !== null) {
-            newCount = parseInt(responseData.count);
-          } else {
-            // Fallback: get current count and increment
-            const currentCount = await getTotalWaitlistCount().catch(() => {
-              const cached = parseInt(localStorage.getItem('waitlistCount') || '254');
-              return cached;
-            });
-            newCount = currentCount + 1;
+            const newCount = parseInt(responseData.count);
+            if (!isNaN(newCount) && newCount > 0) {
+              // Update counter display immediately with new count
+              updateWaitlistCounter(newCount);
+              localStorage.setItem('waitlistCount', newCount.toString());
+              return { success: true, data: responseData, count: newCount };
+            }
           }
           
-          // Ensure we have a valid count
-          if (isNaN(newCount) || newCount <= 0) {
-            newCount = 254; // Absolute fallback
-          }
+          // Fallback: fetch latest count if API didn't return valid count
+          const currentCount = await getTotalWaitlistCount().catch(() => {
+            const cached = parseInt(localStorage.getItem('waitlistCount') || '254');
+            return cached;
+          });
+          updateWaitlistCounter(currentCount);
+          localStorage.setItem('waitlistCount', currentCount.toString());
           
-          // Update counter display immediately with new count
-          updateWaitlistCounter(newCount);
-          localStorage.setItem('waitlistCount', newCount.toString());
-          
-          return { success: true, data: responseData, count: newCount };
+          return { success: true, data: responseData, count: currentCount };
         } catch (error) {
           console.error('Error adding to waitlist:', error);
           // Fallback: increment local counter
@@ -3751,8 +3753,15 @@
       // Initialize counter on page load
       async function initializeCounter() {
         // Fetch fresh count from Google Sheets
-        const count = await getTotalWaitlistCount();
-        updateWaitlistCounter(count);
+        try {
+          const count = await getTotalWaitlistCount();
+          updateWaitlistCounter(count);
+        } catch (error) {
+          console.error('Error initializing waitlist counter:', error);
+          // Use cached value if available
+          const cached = parseInt(localStorage.getItem('waitlistCount') || '254');
+          updateWaitlistCounter(cached);
+        }
       }
 
       // Initialize counter when page loads
