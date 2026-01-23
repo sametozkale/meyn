@@ -3162,48 +3162,63 @@
         }
       }
       
-      // Load saved selected state from cookies
-      let savedSelectedOption = getCookie('optionSelected') || null;
+      // Check if visitor has already clicked a counter button (one-time only)
+      const hasClickedCounter = localStorage.getItem('counterClicked');
+      const clickedOptionId = localStorage.getItem('counterClickedOption');
       
-      // Restore selected state
-      if (savedSelectedOption) {
-        const selectedButton = document.querySelector(`.option-btn[data-option="${savedSelectedOption}"]`);
-        if (selectedButton) {
-          selectedButton.classList.add('selected');
-        }
+      // If visitor has already clicked, disable all buttons
+      if (hasClickedCounter && clickedOptionId) {
+        optionButtons.forEach(button => {
+          button.style.opacity = '0.5';
+          button.style.cursor = 'not-allowed';
+          button.style.pointerEvents = 'none';
+          
+          // Show which option was clicked
+          if (button.getAttribute('data-option') === clickedOptionId) {
+            button.classList.add('selected');
+          }
+        });
       }
       
       // Handle option button clicks
       optionButtons.forEach(button => {
         button.addEventListener('click', async function() {
-          const optionId = this.getAttribute('data-option');
-          const isSelected = this.classList.contains('selected');
-          
-          if (isSelected) {
-            // If already selected, deselect it
-            this.classList.remove('selected');
-            savedSelectedOption = null;
-          } else {
-            // If not selected, deselect any previously selected option first
-            const previouslySelected = document.querySelector('.option-btn.selected');
-            if (previouslySelected) {
-              previouslySelected.classList.remove('selected');
-            }
-            
-            // Select the clicked option and increment count
-            this.classList.add('selected');
-            savedSelectedOption = optionId;
-            
-            // Increment counter
-            const countSpan = document.getElementById(`counter-option-${optionId}`);
-            if (countSpan) {
-              const newCount = await incrementCounter(optionId);
-              countSpan.textContent = newCount;
-            }
+          // Prevent multiple clicks - check if visitor has already clicked
+          if (hasClickedCounter) {
+            return; // Already clicked, do nothing
           }
           
-          // Save selected state to cookies
-          setCookie('optionSelected', savedSelectedOption);
+          const optionId = this.getAttribute('data-option');
+          
+          // Mark that visitor has clicked a counter button
+          localStorage.setItem('counterClicked', 'true');
+          localStorage.setItem('counterClickedOption', optionId);
+          
+          // Deselect any previously selected option first
+          const previouslySelected = document.querySelector('.option-btn.selected');
+          if (previouslySelected) {
+            previouslySelected.classList.remove('selected');
+          }
+          
+          // Select the clicked option and increment count
+          this.classList.add('selected');
+          
+          // Increment counter (only once per visitor)
+          const countSpan = document.getElementById(`counter-option-${optionId}`);
+          if (countSpan) {
+            const newCount = await incrementCounter(optionId);
+            countSpan.textContent = newCount;
+          }
+          
+          // Disable all buttons after click
+          optionButtons.forEach(btn => {
+            btn.style.opacity = '0.5';
+            btn.style.cursor = 'not-allowed';
+            btn.style.pointerEvents = 'none';
+          });
+          
+          // Keep the clicked button visually selected but disabled
+          this.style.opacity = '1';
         });
       });
 
