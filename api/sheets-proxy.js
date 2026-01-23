@@ -20,30 +20,34 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Missing action parameter' });
   }
 
-  if (!sheetId) {
-    return res.status(400).json({ error: 'Missing sheetId parameter' });
+  // Get sheet ID from request body or environment variable
+  const targetSheetId = sheetId || process.env.SHEET_ID_WAITLIST;
+  
+  if (!targetSheetId) {
+    return res.status(400).json({ error: 'Missing sheetId parameter or SHEET_ID_WAITLIST environment variable' });
   }
 
   try {
-    // Service Account credentials from environment variable
-    const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_CREDENTIALS || '{}');
+    // Service Account credentials from environment variables
+    const privateKey = process.env.GOOGLE_PRIVATE_KEY;
+    const clientEmail = process.env.GOOGLE_CLIENT_EMAIL;
     
-    if (!credentials.private_key || !credentials.client_email) {
+    if (!privateKey || !clientEmail) {
       console.error('[SHEETS PROXY ERROR] Missing Google Service Account credentials');
       return res.status(500).json({ 
         error: 'Google Service Account credentials not configured',
-        message: 'Please set GOOGLE_SERVICE_ACCOUNT_CREDENTIALS environment variable'
+        message: 'Please set GOOGLE_PRIVATE_KEY and GOOGLE_CLIENT_EMAIL environment variables'
       });
     }
 
     // Authenticate with Google Sheets API
     const jwt = new JWT({
-      email: credentials.client_email,
-      key: credentials.private_key.replace(/\\n/g, '\n'),
+      email: clientEmail,
+      key: privateKey.replace(/\\n/g, '\n'),
       scopes: ['https://www.googleapis.com/auth/spreadsheets'],
     });
 
-    const doc = new GoogleSpreadsheet(sheetId, jwt);
+    const doc = new GoogleSpreadsheet(targetSheetId, jwt);
     await doc.loadInfo();
 
     let result;
