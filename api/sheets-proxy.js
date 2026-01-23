@@ -60,6 +60,12 @@ export default async function handler(req, res) {
 
     const doc = new GoogleSpreadsheet(targetSheetId, jwt);
     await doc.loadInfo();
+    
+    // Log sheet structure for debugging
+    console.log(`[SHEETS PROXY] Sheet loaded: ${doc.title}, Sheet count: ${doc.sheetCount}`);
+    doc.sheetsByIndex.forEach((sheet, index) => {
+      console.log(`[SHEETS PROXY] Sheet ${index}: ${sheet.title}`);
+    });
 
     let result;
 
