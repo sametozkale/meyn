@@ -3024,211 +3024,25 @@
       return null;
     }
 
-    // Counter API Configuration
-    const COUNTER_CONFIG = {
-      secret: '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',
-      databaseId: '2f0988ba141e8094b702f9a42671fcaf',
-      dataSourceId: '2f0988ba-141e-802b-a007-000b21304e34', // Data Source ID for Options
-      apiUrl: 'https://api.notion.com/v1',
-      queryUrl: 'https://api.notion.com/v1/databases',
-      dataSourceUrl: 'https://api.notion.com/v1/data_sources',
-      proxyUrl: '/api/notion-proxy' // Vercel serverless function proxy
-    };
-
-    // Helper function to make Notion API calls through proxy
-    async function notionFetch(url, options = {}) {
-      const proxyUrl = `${COUNTER_CONFIG.proxyUrl}?url=${encodeURIComponent(url)}`;
-      const { headers, ...restOptions } = options;
-      
-      return fetch(proxyUrl, {
-        ...restOptions,
-        headers: {
-          ...headers,
-          'Notion-Version': headers?.['Notion-Version'] || '2025-09-03'
-        }
-      });
-    }
-
-
-    // Function to get counter value from Notion
+    // Counter functions - using localStorage (will be replaced with Google Sheets)
     async function getCounterValue(optionId) {
-      try {
-        // Check if secret is placeholder or not configured
-        if (!COUNTER_CONFIG.secret || COUNTER_CONFIG.secret === 'YOUR_NOTION_COUNTER_SECRET' || 
-            !COUNTER_CONFIG.dataSourceId || COUNTER_CONFIG.dataSourceId === 'COUNTER_DATA_SOURCE_ID') {
-          // Fallback to localStorage if secret/data source not configured
-          const saved = localStorage.getItem(`counter_${optionId}`);
-          return saved ? parseInt(saved) : (optionId === '1' ? 27 : optionId === '2' ? 12 : 5);
-        }
-
-        // Use data_source_id directly
-        const notionUrl = `${COUNTER_CONFIG.dataSourceUrl}/${COUNTER_CONFIG.dataSourceId}/query`;
-        const response = await notionFetch(notionUrl, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${COUNTER_CONFIG.secret}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            filter: {
-              property: 'Option',
-              title: {
-                equals: optionId
-              }
-            }
-          })
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.message || `API request failed with status ${response.status}`);
-        }
-
-        const data = await response.json();
-        if (data.results && data.results.length > 0) {
-          const count = data.results[0].properties?.Count?.number || 0;
-          // Save to localStorage as cache
-          localStorage.setItem(`counter_${optionId}`, count.toString());
-          return count;
-        }
-        
-        // If no record exists, return default
-        const defaultCount = optionId === '1' ? 27 : optionId === '2' ? 12 : 5;
-        localStorage.setItem(`counter_${optionId}`, defaultCount.toString());
-        return defaultCount;
-      } catch (error) {
-        console.error('Error fetching counter:', error);
-        // Fallback to localStorage
-        const saved = localStorage.getItem(`counter_${optionId}`);
-        return saved ? parseInt(saved) : (optionId === '1' ? 27 : optionId === '2' ? 12 : 5);
-      }
+      // Get from localStorage
+      const saved = localStorage.getItem(`counter_${optionId}`);
+      return saved ? parseInt(saved) : (optionId === '1' ? 27 : optionId === '2' ? 12 : 5);
     }
 
-    // Function to increment counter in Notion
     async function incrementCounter(optionId) {
-      // Check if secret is placeholder or not configured
-      if (!COUNTER_CONFIG.secret || COUNTER_CONFIG.secret === 'YOUR_NOTION_COUNTER_SECRET' || 
-          !COUNTER_CONFIG.dataSourceId || COUNTER_CONFIG.dataSourceId === 'COUNTER_DATA_SOURCE_ID') {
-        // Fallback to localStorage
-        const current = parseInt(localStorage.getItem(`counter_${optionId}`) || (optionId === '1' ? 27 : optionId === '2' ? 12 : 5));
-        const newValue = current + 1;
-        localStorage.setItem(`counter_${optionId}`, newValue.toString());
-        return newValue;
-      }
-
-      try {
-        // First, try to find existing record
-        const queryUrl = `${COUNTER_CONFIG.dataSourceUrl}/${COUNTER_CONFIG.dataSourceId}/query`;
-        const queryResponse = await notionFetch(queryUrl, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${COUNTER_CONFIG.secret}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            filter: {
-              property: 'Option',
-              title: {
-                equals: optionId
-              }
-            }
-          })
-        });
-
-        if (!queryResponse.ok) {
-          const errorData = await queryResponse.json().catch(() => ({}));
-          throw new Error(errorData.message || `Query failed with status ${queryResponse.status}`);
-        }
-
-        const queryData = await queryResponse.json();
-        
-        if (queryData.results && queryData.results.length > 0) {
-          // Update existing record
-          const pageId = queryData.results[0].id;
-          const currentCount = queryData.results[0].properties?.Count?.number || 0;
-          const newCount = currentCount + 1;
-
-          const updateUrl = `${COUNTER_CONFIG.apiUrl}/pages/${pageId}`;
-          const updateResponse = await notionFetch(updateUrl, {
-            method: 'PATCH',
-            headers: {
-              'Authorization': `Bearer ${COUNTER_CONFIG.secret}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              properties: {
-                'Count': {
-                  number: newCount
-                }
-              }
-            })
-          });
-
-          if (!updateResponse.ok) {
-            const errorData = await updateResponse.json().catch(() => ({}));
-            throw new Error(errorData.message || `Update failed with status ${updateResponse.status}`);
-          }
-
-          // Save to localStorage as cache
-          localStorage.setItem(`counter_${optionId}`, newCount.toString());
-          return newCount;
-        } else {
-          // Create new record
-          const defaultCount = optionId === '1' ? 27 : optionId === '2' ? 12 : 5;
-          const newCount = defaultCount + 1;
-
-          const createUrl = `${COUNTER_CONFIG.apiUrl}/pages`;
-          const createResponse = await notionFetch(createUrl, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${COUNTER_CONFIG.secret}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              parent: {
-                type: 'data_source_id',
-                data_source_id: COUNTER_CONFIG.dataSourceId
-              },
-              properties: {
-                'Option': {
-                  title: [
-                    {
-                      text: {
-                        content: optionId
-                      }
-                    }
-                  ]
-                },
-                'Count': {
-                  number: newCount
-                }
-              }
-            })
-          });
-
-          if (!createResponse.ok) {
-            const errorData = await createResponse.json().catch(() => ({}));
-            throw new Error(errorData.message || `Create failed with status ${createResponse.status}`);
-          }
-
-          // Save to localStorage as cache
-          localStorage.setItem(`counter_${optionId}`, newCount.toString());
-          return newCount;
-        }
-      } catch (error) {
-        console.error('Error incrementing counter:', error);
-        // Fallback to localStorage - increment locally
-        const current = parseInt(localStorage.getItem(`counter_${optionId}`) || (optionId === '1' ? 27 : optionId === '2' ? 12 : 5));
-        const newValue = current + 1;
-        localStorage.setItem(`counter_${optionId}`, newValue.toString());
-        return newValue;
-      }
+      // Increment in localStorage
+      const current = parseInt(localStorage.getItem(`counter_${optionId}`) || (optionId === '1' ? 27 : optionId === '2' ? 12 : 5));
+      const newValue = current + 1;
+      localStorage.setItem(`counter_${optionId}`, newValue.toString());
+      return newValue;
     }
 
     document.addEventListener('DOMContentLoaded', async function() {
       const optionButtons = document.querySelectorAll('.option-btn');
       
-      // Load counters from Notion (or localStorage fallback)
+      // Load counters from localStorage
       for (const button of optionButtons) {
         const optionId = button.getAttribute('data-option');
         const countSpan = document.getElementById(`counter-option-${optionId}`);
@@ -3492,47 +3306,12 @@
         waitlistModalClose.addEventListener('click', closeWaitlistModal);
       }
       
-      // Notion Integration Configuration
-      // 
-      // SETUP INSTRUCTIONS:
-      // 1. Create a new database in Notion
-      // 2. Add the following properties to your database:
-      //    - Email (type: Email)
-      //    - Created Date (type: Date)
-      //    - Browser (type: Text)
-      //    - OS (type: Text)
-      //    - Device (type: Select with options: Desktop, Mobile, Tablet)
-      //    - User Agent (type: Text)
-      //    - Language (type: Text)
-      //    - Timezone (type: Text)
-      //    - Form Source (type: Select with options: modal, hero)
-      // 3. Share your database with the integration "Meyn Waitlist"
-      // 4. Get your Database ID from the URL (the part after the last slash, before the ?)
-      //    Example: https://www.notion.so/workspace/DATABASE_ID?v=...
-      // 5. Paste the Database ID below
-      const NOTION_CONFIG = {
-        secret: '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',
-        databaseId: '2f0988ba141e80599815e262a73f8c24',
-        dataSourceId: '2f0988ba-141e-8073-a704-000bc43e6299', // Data Source ID for Waitlist
-        apiUrl: 'https://api.notion.com/v1/pages',
-        queryUrl: 'https://api.notion.com/v1/databases',
-        dataSourceUrl: 'https://api.notion.com/v1/data_sources',
-        proxyUrl: '/api/notion-proxy' // Vercel serverless function proxy
+      // Google Sheets Configuration (to be configured)
+      const SHEETS_CONFIG = {
+        counterSheetId: '', // Will be set when Google Sheets is configured
+        waitlistSheetId: '', // Will be set when Google Sheets is configured
+        proxyUrl: '/api/sheets-proxy' // Vercel serverless function proxy
       };
-
-      // Helper function to make Notion API calls through proxy (for waitlist)
-      async function notionFetchWaitlist(url, options = {}) {
-        const proxyUrl = `${NOTION_CONFIG.proxyUrl}?url=${encodeURIComponent(url)}`;
-        const { headers, ...restOptions } = options;
-        
-        return fetch(proxyUrl, {
-          ...restOptions,
-          headers: {
-            ...headers,
-            'Notion-Version': headers?.['Notion-Version'] || '2025-09-03'
-          }
-        });
-      }
 
 
       // Function to detect browser information
@@ -3596,167 +3375,25 @@
         };
       }
 
-      // Function to send data to Notion
-      async function addToNotion(email, formSource = 'modal') {
-        // Check if secret is placeholder or not configured
-        if (!NOTION_CONFIG.secret || NOTION_CONFIG.secret === 'YOUR_NOTION_WAITLIST_SECRET') {
-          console.warn('Notion secret is not configured. Please set NOTION_CONFIG.secret');
-          return { success: false, error: 'Secret not configured' };
-        }
-        
-        // Check if data source ID is configured
-        if (!NOTION_CONFIG.dataSourceId) {
-          console.warn('Notion Data Source ID is not configured. Please set NOTION_CONFIG.dataSourceId');
-          return { success: false, error: 'Data Source ID not configured' };
-        }
-
+      // Function to add email to Google Sheets waitlist (placeholder - will be implemented)
+      async function addToWaitlist(email, formSource = 'modal') {
         // Validate email
         if (!email || email.trim() === '') {
           console.error('Email is empty or invalid');
           return { success: false, error: 'Email is required' };
         }
 
-        const browserInfo = getBrowserInfo();
-        const now = new Date().toISOString();
-
-        // Format properties for Notion API
-        const properties = {
-          'Email': {
-            'email': email.trim()
-          },
-          'Created Date': {
-            'date': {
-              'start': now
-            }
-          },
-          'Browser': {
-            'rich_text': [{
-              'text': {
-                'content': browserInfo.browser + (browserInfo.browserVersion ? ' ' + browserInfo.browserVersion : '')
-              }
-            }]
-          },
-          'OS': {
-            'rich_text': [{
-              'text': {
-                'content': browserInfo.os
-              }
-            }]
-          },
-          'Device': {
-            'select': {
-              'name': browserInfo.device
-            }
-          },
-          'User Agent': {
-            'rich_text': [{
-              'text': {
-                'content': browserInfo.userAgent.substring(0, 2000) // Notion has a limit
-              }
-            }]
-          },
-          'Language': {
-            'rich_text': [{
-              'text': {
-                'content': browserInfo.language
-              }
-            }]
-          },
-          'Timezone': {
-            'rich_text': [{
-              'text': {
-                'content': browserInfo.timezone
-              }
-            }]
-          },
-          'Form Source': {
-            'select': {
-              'name': formSource
-            }
-          }
-        };
-
-        try {
-          const response = await notionFetchWaitlist(NOTION_CONFIG.apiUrl, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${NOTION_CONFIG.secret}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              'parent': {
-                'type': 'data_source_id',
-                'data_source_id': NOTION_CONFIG.dataSourceId
-              },
-              'properties': properties
-            })
-          });
-
-          if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            console.error('Notion API Error:', errorData);
-            return { success: false, error: errorData.message || `Failed to add to Notion (status ${response.status})` };
-          }
-
-          const data = await response.json();
-          return { success: true, data: data };
-        } catch (error) {
-          console.error('Error adding to Notion:', error);
-          return { success: false, error: error.message };
-        }
+        // TODO: Implement Google Sheets API call
+        // For now, just increment local counter
+        incrementWaitlistCounterLocal();
+        return { success: true };
       }
 
-      // Function to get total waitlist count from Notion (with pagination support)
+      // Function to get total waitlist count from Google Sheets (placeholder - will be implemented)
       async function getTotalWaitlistCount() {
-        // Check if secret is placeholder or not configured
-        if (!NOTION_CONFIG.secret || NOTION_CONFIG.secret === 'YOUR_NOTION_WAITLIST_SECRET' || !NOTION_CONFIG.dataSourceId) {
-          // Fallback to localStorage if secret/data source not configured
-          return parseInt(localStorage.getItem('waitlistCount') || '254');
-        }
-
-        try {
-          let totalCount = 0;
-          let hasMore = true;
-          let startCursor = null;
-
-          while (hasMore) {
-            const body = {
-              page_size: 100
-            };
-            if (startCursor) {
-              body.start_cursor = startCursor;
-            }
-
-            // Use data_source_id directly
-            const queryUrl = `${NOTION_CONFIG.dataSourceUrl}/${NOTION_CONFIG.dataSourceId}/query`;
-            const response = await notionFetchWaitlist(queryUrl, {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${NOTION_CONFIG.secret}`,
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify(body)
-            });
-
-            if (!response.ok) {
-              const errorData = await response.json().catch(() => ({}));
-              throw new Error(errorData.message || `Failed to fetch waitlist count (status ${response.status})`);
-            }
-
-            const data = await response.json();
-            totalCount += data.results ? data.results.length : 0;
-            hasMore = data.has_more || false;
-            startCursor = data.next_cursor || null;
-          }
-
-          // Save to localStorage as cache
-          localStorage.setItem('waitlistCount', totalCount.toString());
-          return totalCount;
-        } catch (error) {
-          console.error('Error fetching total waitlist count:', error);
-          // Fallback to localStorage if API fails
-          return parseInt(localStorage.getItem('waitlistCount') || '254');
-        }
+        // TODO: Implement Google Sheets API call
+        // For now, return from localStorage
+        return parseInt(localStorage.getItem('waitlistCount') || '254');
       }
 
       // Function to update waitlist counter display
@@ -3776,15 +3413,15 @@
         localStorage.setItem('waitlistCount', count.toString());
       }
 
-      // Function to increment waitlist counter (now fetches from Notion)
+      // Function to increment waitlist counter (will fetch from Google Sheets)
       async function incrementWaitlistCounter() {
-        // Fetch fresh count from Notion (this will include the newly added email)
+        // Fetch fresh count from Google Sheets (this will include the newly added email)
         const count = await getTotalWaitlistCount();
         updateWaitlistCounter(count);
         return count;
       }
 
-      // Function to manually increment waitlist counter (for fallback when Notion fails)
+      // Function to manually increment waitlist counter (for fallback when Google Sheets fails)
       function incrementWaitlistCounterLocal() {
         const current = parseInt(localStorage.getItem('waitlistCount') || '254');
         const newCount = current + 1;
@@ -3794,7 +3431,7 @@
 
       // Initialize counter on page load
       async function initializeCounter() {
-        // Fetch fresh count from Notion
+        // Fetch fresh count from Google Sheets
         const count = await getTotalWaitlistCount();
         updateWaitlistCounter(count);
       }
@@ -3819,7 +3456,7 @@
         const heroUserId = document.getElementById('hero-user-id');
         
         if (heroForm && heroGetAhead) {
-          // Get waitlist position (fetch from Notion)
+          // Get waitlist position (fetch from Google Sheets)
           const waitlistCount = await getTotalWaitlistCount();
           const userPosition = '#' + waitlistCount.toString();
           
@@ -3861,7 +3498,7 @@
         const modalUserId = document.getElementById('modal-user-id');
         
         if (modalForm && modalGetAheadContent) {
-          // Get waitlist position (fetch from Notion)
+          // Get waitlist position (fetch from Google Sheets)
           const waitlistCount = await getTotalWaitlistCount();
           const userPosition = '#' + waitlistCount.toString();
           
@@ -3918,15 +3555,15 @@
             submitButton.textContent = 'Joining...';
 
             try {
-              // Add to Notion
-              const notionResult = await addToNotion(email, 'modal');
+              // Add to Google Sheets
+              const result = await addToWaitlist(email, 'modal');
               
-              if (notionResult.success) {
-                // If Notion succeeded, fetch fresh count (will include new email)
+              if (result.success) {
+                // If Google Sheets succeeded, fetch fresh count (will include new email)
                 await incrementWaitlistCounter();
               } else {
-                // If Notion failed, increment local counter as fallback
-                console.error('Notion error:', notionResult.error);
+                // If Google Sheets failed, increment local counter as fallback
+                console.error('Google Sheets error:', result.error);
                 incrementWaitlistCounterLocal();
               }
               
@@ -3971,15 +3608,15 @@
             }
 
             try {
-              // Add to Notion
-              const notionResult = await addToNotion(email, 'hero');
+              // Add to Google Sheets
+              const result = await addToWaitlist(email, 'hero');
               
-              if (notionResult.success) {
-                // If Notion succeeded, fetch fresh count (will include new email)
+              if (result.success) {
+                // If Google Sheets succeeded, fetch fresh count (will include new email)
                 await incrementWaitlistCounter();
               } else {
-                // If Notion failed, increment local counter as fallback
-                console.error('Notion error:', notionResult.error);
+                // If Google Sheets failed, increment local counter as fallback
+                console.error('Google Sheets error:', result.error);
                 incrementWaitlistCounterLocal();
               }
               

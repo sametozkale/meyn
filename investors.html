@@ -577,45 +577,11 @@
         waitlistModalClose.addEventListener('click', closeWaitlistModal);
       }
       
-      // Notion Integration Configuration
-      const NOTION_CONFIG = {
-        secret: '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',
-        databaseId: '2f0988ba141e80599815e262a73f8c24',
-        dataSourceId: '2f0988ba-141e-8073-a704-000bc43e6299', // Data Source ID for Waitlist
-        apiUrl: 'https://api.notion.com/v1/pages',
-        queryUrl: 'https://api.notion.com/v1/databases',
-        dataSourceUrl: 'https://api.notion.com/v1/data_sources',
-        proxyUrl: '/api/notion-proxy' // Vercel serverless function proxy
+      // Google Sheets Configuration (to be configured)
+      const SHEETS_CONFIG = {
+        waitlistSheetId: '', // Will be set when Google Sheets is configured
+        proxyUrl: '/api/sheets-proxy' // Vercel serverless function proxy
       };
-
-      // Helper function to make Notion API calls through proxy
-      async function notionFetchWaitlist(url, options = {}) {
-        const proxyUrl = `${NOTION_CONFIG.proxyUrl}?url=${encodeURIComponent(url)}`;
-        const { headers, ...restOptions } = options;
-        
-        return fetch(proxyUrl, {
-          ...restOptions,
-          headers: {
-            ...headers,
-            'Notion-Version': headers?.['Notion-Version'] || '2025-09-03'
-          }
-        });
-      }
-
-
-      // Helper function to make Notion API calls through proxy
-      async function notionFetchWaitlist(url, options = {}) {
-        const proxyUrl = `${NOTION_CONFIG.proxyUrl}?url=${encodeURIComponent(url)}`;
-        const { headers, ...restOptions } = options;
-        
-        return fetch(proxyUrl, {
-          ...restOptions,
-          headers: {
-            ...headers,
-            'Notion-Version': headers?.['Notion-Version'] || '2025-09-03'
-          }
-        });
-      }
 
       // Function to detect browser information
       function getBrowserInfo() {
@@ -678,121 +644,25 @@
         };
       }
 
-      // Function to send data to Notion
-      async function addToNotion(email, formSource = 'modal') {
-        // Check if secret is placeholder or not configured
-        if (!NOTION_CONFIG.secret || NOTION_CONFIG.secret === 'YOUR_NOTION_WAITLIST_SECRET') {
-          console.warn('Notion secret is not configured. Please set NOTION_CONFIG.secret');
-          return { success: false, error: 'Secret not configured' };
-        }
-        
-        if (!NOTION_CONFIG.dataSourceId) {
-          console.warn('Notion Data Source ID is not configured. Please set NOTION_CONFIG.dataSourceId');
-          return { success: false, error: 'Data Source ID not configured' };
-        }
-
+      // Function to add email to Google Sheets waitlist (placeholder - will be implemented)
+      async function addToWaitlist(email, formSource = 'modal') {
         // Validate email
         if (!email || email.trim() === '') {
           console.error('Email is empty or invalid');
           return { success: false, error: 'Email is required' };
         }
 
-        const browserInfo = getBrowserInfo();
-        const now = new Date().toISOString();
-
-        const properties = {
-          'Email': { 'email': email.trim() },
-          'Created Date': { 'date': { 'start': now } },
-          'Browser': { 'rich_text': [{ 'text': { 'content': browserInfo.browser + (browserInfo.browserVersion ? ' ' + browserInfo.browserVersion : '') } }] },
-          'OS': { 'rich_text': [{ 'text': { 'content': browserInfo.os } }] },
-          'Device': { 'select': { 'name': browserInfo.device } },
-          'User Agent': { 'rich_text': [{ 'text': { 'content': browserInfo.userAgent.substring(0, 2000) } }] },
-          'Language': { 'rich_text': [{ 'text': { 'content': browserInfo.language } }] },
-          'Timezone': { 'rich_text': [{ 'text': { 'content': browserInfo.timezone } }] },
-          'Form Source': { 'select': { 'name': formSource } }
-        };
-
-        try {
-          const response = await notionFetchWaitlist(NOTION_CONFIG.apiUrl, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${NOTION_CONFIG.secret}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              'parent': {
-                'type': 'data_source_id',
-                'data_source_id': NOTION_CONFIG.dataSourceId
-              },
-              'properties': properties
-            })
-          });
-
-          if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            console.error('Notion API Error:', errorData);
-            return { success: false, error: errorData.message || `Failed to add to Notion (status ${response.status})` };
-          }
-
-          const data = await response.json();
-          return { success: true, data: data };
-        } catch (error) {
-          console.error('Error adding to Notion:', error);
-          return { success: false, error: error.message };
-        }
+        // TODO: Implement Google Sheets API call
+        // For now, just increment local counter
+        incrementWaitlistCounterLocal();
+        return { success: true };
       }
 
-      // Function to get total waitlist count from Notion (with pagination support)
+      // Function to get total waitlist count from Google Sheets (placeholder - will be implemented)
       async function getTotalWaitlistCount() {
-        // Check if secret is placeholder or not configured
-        if (!NOTION_CONFIG.secret || NOTION_CONFIG.secret === 'YOUR_NOTION_WAITLIST_SECRET' || !NOTION_CONFIG.dataSourceId) {
-          // Fallback to localStorage if secret/data source not configured
-          return parseInt(localStorage.getItem('waitlistCount') || '254');
-        }
-
-        try {
-          let totalCount = 0;
-          let hasMore = true;
-          let startCursor = null;
-
-          while (hasMore) {
-            const body = {
-              page_size: 100
-            };
-            if (startCursor) {
-              body.start_cursor = startCursor;
-            }
-
-            // Use data_source_id directly
-            const queryUrl = `${NOTION_CONFIG.dataSourceUrl}/${NOTION_CONFIG.dataSourceId}/query`;
-            const response = await notionFetchWaitlist(queryUrl, {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${NOTION_CONFIG.secret}`,
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify(body)
-            });
-
-            if (!response.ok) {
-              const errorData = await response.json().catch(() => ({}));
-              throw new Error(errorData.message || `Failed to fetch waitlist count (status ${response.status})`);
-            }
-
-            const data = await response.json();
-            totalCount += data.results ? data.results.length : 0;
-            hasMore = data.has_more || false;
-            startCursor = data.next_cursor || null;
-          }
-
-          // Save to localStorage as cache
-          localStorage.setItem('waitlistCount', totalCount.toString());
-          return totalCount;
-        } catch (error) {
-          console.error('Error fetching total waitlist count:', error);
-          // Fallback to localStorage if API fails
-          return parseInt(localStorage.getItem('waitlistCount') || '254');
-        }
+        // TODO: Implement Google Sheets API call
+        // For now, return from localStorage
+        return parseInt(localStorage.getItem('waitlistCount') || '254');
       }
 
       // Function to update waitlist counter display
@@ -844,7 +714,7 @@
         const modalUserId = document.getElementById('modal-user-id');
         
         if (modalForm && modalGetAheadContent) {
-          // Get waitlist position (fetch from Notion)
+          // Get waitlist position (fetch from Google Sheets)
           const waitlistCount = await getTotalWaitlistCount();
           const userPosition = '#' + waitlistCount.toString();
           
@@ -890,14 +760,14 @@
             submitButton.textContent = 'Joining...';
 
             try {
-              const notionResult = await addToNotion(email, 'modal');
+              const result = await addToWaitlist(email, 'modal');
               
-              if (notionResult.success) {
-                // If Notion succeeded, fetch fresh count (will include new email)
+              if (result.success) {
+                // If Google Sheets succeeded, fetch fresh count (will include new email)
                 await incrementWaitlistCounter();
               } else {
-                // If Notion failed, increment local counter as fallback
-                console.error('Notion error:', notionResult.error);
+                // If Google Sheets failed, increment local counter as fallback
+                console.error('Google Sheets error:', result.error);
                 incrementWaitlistCounterLocal();
               }
               
