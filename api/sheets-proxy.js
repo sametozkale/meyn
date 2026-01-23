@@ -157,8 +157,25 @@ export default async function handler(req, res) {
         // Get updated count after adding email
         const rows = await waitlistSheet.getRows();
         const emailRows = rows.filter(row => {
-          const email = row.get('Email') || row.Email || '';
-          return email.trim() !== '' && email.toLowerCase() !== 'email';
+          try {
+            let email = '';
+            if (row.get) {
+              email = row.get('Email') || '';
+            } else if (row.Email) {
+              email = row.Email;
+            } else if (row.email) {
+              email = row.email;
+            } else if (row._rawData && row._rawData[0]) {
+              email = row._rawData[0] || '';
+            }
+            email = String(email || '').trim();
+            return email !== '' && 
+                   email.includes('@') && 
+                   email.toLowerCase() !== 'email' &&
+                   !email.toLowerCase().startsWith('email');
+          } catch (e) {
+            return false;
+          }
         });
         const newCount = emailRows.length > 0 ? emailRows.length : 254;
         
@@ -170,14 +187,39 @@ export default async function handler(req, res) {
         const countSheet = doc.sheetsByIndex[1] || doc.sheetsByIndex[0];
         const rows = await countSheet.getRows();
         
-        // Count only rows with email (skip header row and empty rows)
+        // Count only rows with valid email addresses
+        // getRows() already excludes header row, so we just need to filter valid emails
         let totalCount = 254; // Default value
-        if (rows.length > 0) {
-          // Filter out header row and empty email rows
+        
+        if (rows && rows.length > 0) {
+          // Filter rows with valid email addresses
           const emailRows = rows.filter(row => {
-            const email = row.get('Email') || row.Email || '';
-            return email.trim() !== '' && email.toLowerCase() !== 'email';
+            try {
+              // Try different ways to access email field
+              let email = '';
+              if (row.get) {
+                email = row.get('Email') || '';
+              } else if (row.Email) {
+                email = row.Email;
+              } else if (row.email) {
+                email = row.email;
+              } else if (row._rawData && row._rawData[0]) {
+                // Try to get from raw data (first column)
+                email = row._rawData[0] || '';
+              }
+              
+              // Check if it's a valid email (contains @ and not empty)
+              email = String(email || '').trim();
+              return email !== '' && 
+                     email.includes('@') && 
+                     email.toLowerCase() !== 'email' &&
+                     !email.toLowerCase().startsWith('email');
+            } catch (e) {
+              return false;
+            }
           });
+          
+          // Use actual count if we found valid emails, otherwise use default
           totalCount = emailRows.length > 0 ? emailRows.length : 254;
         }
         

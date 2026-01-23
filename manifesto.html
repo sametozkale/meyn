@@ -735,15 +735,25 @@
           }
 
           const data = await response.json();
-          const count = data.count || 254;
           
-          // Save to localStorage as cache
-          localStorage.setItem('waitlistCount', count.toString());
-          return count;
+          // Always use the count from API, don't fallback to default
+          if (data.count !== undefined && data.count !== null) {
+            const count = parseInt(data.count);
+            // Save to localStorage as cache
+            localStorage.setItem('waitlistCount', count.toString());
+            return count;
+          } else {
+            // If API doesn't return count, try localStorage, otherwise use default
+            const cached = parseInt(localStorage.getItem('waitlistCount') || '254');
+            console.warn('API did not return count, using cached value:', cached);
+            return cached;
+          }
         } catch (error) {
           console.error('Error fetching total waitlist count:', error);
-          // Fallback to localStorage if API fails
-          return parseInt(localStorage.getItem('waitlistCount') || '254');
+          // Try localStorage as fallback, but log a warning
+          const cached = parseInt(localStorage.getItem('waitlistCount') || '254');
+          console.warn('Using cached waitlist count due to API error:', cached);
+          return cached;
         }
       }
 
