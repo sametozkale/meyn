@@ -14,6 +14,14 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
+  console.log('[SHEETS PROXY] Request received:', {
+    method: req.method,
+    action: req.body?.action,
+    hasSheetId: !!req.body?.sheetId,
+    hasValues: !!req.body?.values,
+    optionId: req.body?.optionId
+  });
+
   const { action, sheetId, range, values, optionId } = req.body;
 
   if (!action) {

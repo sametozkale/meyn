@@ -3208,7 +3208,9 @@
             const browserInfo = getBrowserInfo();
             const now = new Date().toISOString();
             
-            await fetch(SHEETS_CONFIG.proxyUrl, {
+            console.log('[Counter Click] Adding entry to waitlist sheet...', { optionId, sheetId: SHEETS_CONFIG.sheetId });
+            
+            const response = await fetch(SHEETS_CONFIG.proxyUrl, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json'
@@ -3230,8 +3232,18 @@
                 }
               })
             });
+            
+            if (!response.ok) {
+              const errorData = await response.json().catch(() => ({}));
+              console.error('[Counter Click] API error:', response.status, errorData);
+              throw new Error(errorData.error || `Failed to add counter entry (status ${response.status})`);
+            }
+            
+            const data = await response.json();
+            console.log('[Counter Click] Success:', data);
           } catch (error) {
-            console.error('Error adding counter entry to waitlist:', error);
+            console.error('[Counter Click] Error adding counter entry to waitlist:', error);
+            // Don't block UI, but log the error
           }
           
           // Increment counter (only once per visitor)
@@ -3543,6 +3555,8 @@
         // Get selected option from localStorage if visitor clicked a counter button
         const selectedOption = localStorage.getItem('counterClickedOption') || null;
 
+        console.log('[Add Email] Adding email to waitlist...', { email: email.trim(), selectedOption, formSource });
+
         try {
           const response = await fetch(SHEETS_CONFIG.proxyUrl, {
             method: 'POST',
@@ -3566,6 +3580,17 @@
               }
             })
           });
+          
+          console.log('[Add Email] API response status:', response.status);
+          
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            console.error('[Add Email] API error:', response.status, errorData);
+            throw new Error(errorData.error || `Failed to add to waitlist (status ${response.status})`);
+          }
+          
+          const data = await response.json();
+          console.log('[Add Email] Success:', data);
 
           if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
