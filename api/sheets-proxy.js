@@ -218,10 +218,11 @@ export default async function handler(req, res) {
             }
           });
           
-          const newCount = validEmailCount > 0 ? validEmailCount : 254;
-          console.log(`[addToWaitlist] Valid email count after adding: ${validEmailCount}, Returning: ${newCount}`);
+          // Display count = Real count + 254
+          const displayCount = validEmailCount + 254;
+          console.log(`[addToWaitlist] Valid email count: ${validEmailCount}, Display count: ${displayCount}`);
           
-          result = { success: true, count: newCount };
+          result = { success: true, count: displayCount };
         } catch (sheetError) {
           console.error('[addToWaitlist] Sheet error:', sheetError);
           throw sheetError; // Re-throw to be caught by outer catch
@@ -304,11 +305,11 @@ export default async function handler(req, res) {
             });
           }
           
-          // Use actual count, minimum 254 if no emails found
-          const totalCount = validEmailCount > 0 ? validEmailCount : 254;
-          console.log(`[getWaitlistCount] Valid email count: ${validEmailCount}, Returning: ${totalCount}`);
+          // Display count = Real count + 254 (always add 254, even if count is 0)
+          const displayCount = validEmailCount + 254;
+          console.log(`[getWaitlistCount] Valid email count: ${validEmailCount}, Display count: ${displayCount}`);
           
-          result = { count: totalCount };
+          result = { count: displayCount };
         } catch (sheetError) {
           console.error('[getWaitlistCount] Sheet error:', sheetError);
           console.error('[getWaitlistCount] Error stack:', sheetError.stack);
