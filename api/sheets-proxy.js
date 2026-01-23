@@ -227,10 +227,13 @@ export default async function handler(req, res) {
         break;
 
       case 'addToWaitlist':
-        // Add email to waitlist
-        if (!values || !values.email) {
-          return res.status(400).json({ error: 'Missing email in values parameter' });
+        // Add email to waitlist (or update existing entry if email was empty)
+        if (!values) {
+          return res.status(400).json({ error: 'Missing values parameter' });
         }
+        
+        // Allow empty email for counter clicks (email will be added later)
+        const emailValue = values.email || '';
         
         try {
           // Try to get waitlist sheet (second sheet, or first if only one exists)
@@ -248,9 +251,63 @@ export default async function handler(req, res) {
           // Load header to understand column structure
           await waitlistSheet.loadHeaderRow();
           
-          // Prepare row data with Selected Option if provided
+          // If email is provided and selectedOption exists, try to find and update existing entry
+          if (emailValue && values.selectedOption) {
+            const rows = await waitlistSheet.getRows();
+            const headerValues = waitlistSheet.headerValues;
+            const emailIndex = headerValues.findIndex(h => h.toLowerCase() === 'email');
+            const selectedOptionIndex = headerValues.findIndex(h => 
+              h.toLowerCase() === 'selected option' || 
+              h.toLowerCase() === 'selectedoption' ||
+              h.toLowerCase() === 'option'
+            );
+            
+            // Try to find existing row with empty email and matching selectedOption
+            for (const row of rows) {
+              let rowEmail = '';
+              let rowSelectedOption = '';
+              
+              if (row.get) {
+                rowEmail = row.get('Email') || '';
+                rowSelectedOption = row.get('Selected Option') || row.get('SelectedOption') || row.get('Option') || '';
+              } else {
+                rowEmail = row.Email || '';
+                rowSelectedOption = row['Selected Option'] || row.SelectedOption || row.Option || '';
+              }
+              
+              if (!rowEmail && rowSelectedOption === values.selectedOption) {
+                // Update existing row with email
+                if (row.set) {
+                  row.set('Email', emailValue);
+                } else {
+                  row.Email = emailValue;
+                }
+                await row.save();
+                
+                // Get updated count
+                const updatedRows = await waitlistSheet.getRows();
+                const emailRows = updatedRows.filter(r => {
+                  try {
+                    let email = '';
+                    if (r.get) email = r.get('Email') || '';
+                    else email = r.Email || '';
+                    email = String(email || '').trim();
+                    return email !== '' && email.includes('@') && email.toLowerCase() !== 'email';
+                  } catch (e) {
+                    return false;
+                  }
+                });
+                const newCount = emailRows.length > 0 ? emailRows.length : 254;
+                
+                result = { success: true, count: newCount + 254 };
+                break;
+              }
+            }
+          }
+          
+          // If no existing row found or email is empty, add new row
           const rowData = {
-            Email: values.email,
+            Email: emailValue,
             'Created Date': values.createdDate || new Date().toISOString(),
             Browser: values.browser || '',
             OS: values.os || '',

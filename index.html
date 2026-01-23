@@ -3200,8 +3200,39 @@
             previouslySelected.classList.remove('selected');
           }
           
-          // Select the clicked option and increment count
+          // Select the clicked option
           this.classList.add('selected');
+          
+          // Add counter entry to waitlist sheet (without email, email will be added later if visitor submits)
+          try {
+            const browserInfo = getBrowserInfo();
+            const now = new Date().toISOString();
+            
+            await fetch(SHEETS_CONFIG.proxyUrl, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                action: 'addToWaitlist',
+                sheetId: SHEETS_CONFIG.sheetId,
+                values: {
+                  email: '', // Empty email for now, will be updated when email is submitted
+                  createdDate: now,
+                  browser: browserInfo.browser + (browserInfo.browserVersion ? ' ' + browserInfo.browserVersion : ''),
+                  os: browserInfo.os,
+                  device: browserInfo.device,
+                  userAgent: browserInfo.userAgent.substring(0, 2000),
+                  language: browserInfo.language,
+                  timezone: browserInfo.timezone,
+                  formSource: 'counter',
+                  selectedOption: optionId // Add selected option
+                }
+              })
+            });
+          } catch (error) {
+            console.error('Error adding counter entry to waitlist:', error);
+          }
           
           // Increment counter (only once per visitor)
           const countSpan = document.getElementById(`counter-option-${optionId}`);
