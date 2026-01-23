@@ -3508,6 +3508,9 @@
 
         const browserInfo = getBrowserInfo();
         const now = new Date().toISOString();
+        
+        // Get selected option from localStorage if visitor clicked a counter button
+        const selectedOption = localStorage.getItem('counterClickedOption') || null;
 
         try {
           const response = await fetch(SHEETS_CONFIG.proxyUrl, {
@@ -3527,7 +3530,8 @@
                 userAgent: browserInfo.userAgent.substring(0, 2000),
                 language: browserInfo.language,
                 timezone: browserInfo.timezone,
-                formSource: formSource
+                formSource: formSource,
+                selectedOption: selectedOption // Add selected option to waitlist entry
               }
             })
           });

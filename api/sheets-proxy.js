@@ -71,7 +71,7 @@ export default async function handler(req, res) {
 
     switch (action) {
       case 'getCounter':
-        // Get counter value for a specific option
+        // Get counter value for a specific option from waitlist sheet
         if (!optionId) {
           return res.status(400).json({ error: 'Missing optionId parameter' });
         }
@@ -84,22 +84,65 @@ export default async function handler(req, res) {
         };
         const baseValue = baseValues[optionId] || 0;
         
-        const counterSheet = doc.sheetsByIndex[0]; // First sheet for counters
-        await counterSheet.loadCells('A:B'); // Load Option and Count columns
-        
-        // Find row with matching Option
-        let addedCount = 0;
-        let found = false;
-        for (let row = 1; row <= counterSheet.rowCount; row++) {
-          const optionCell = counterSheet.getCell(row, 0); // Column A
-          const countCell = counterSheet.getCell(row, 1); // Column B
-          
-          if (optionCell.value === optionId || optionCell.value === parseInt(optionId)) {
-            addedCount = parseInt(countCell.value) || 0;
-            found = true;
-            break;
-          }
+        // Get waitlist sheet (second sheet, or first if only one exists)
+        let counterSheet;
+        if (doc.sheetCount > 1) {
+          counterSheet = doc.sheetsByIndex[1];
+        } else {
+          counterSheet = doc.sheetsByIndex[0];
         }
+        
+        if (!counterSheet) {
+          throw new Error('Waitlist sheet not found');
+        }
+        
+        // Load header row to find "Selected Option" column
+        await counterSheet.loadHeaderRow();
+        const headerValues = counterSheet.headerValues;
+        const selectedOptionIndex = headerValues.findIndex(h => 
+          h.toLowerCase() === 'selected option' || 
+          h.toLowerCase() === 'selectedoption' ||
+          h.toLowerCase() === 'option'
+        );
+        
+        if (selectedOptionIndex === -1) {
+          // Column doesn't exist yet, return base value
+          console.log(`[getCounter] Selected Option column not found, returning base value: ${baseValue}`);
+          result = { count: baseValue };
+          break;
+        }
+        
+        // Count rows with matching Selected Option
+        const rows = await counterSheet.getRows();
+        let addedCount = 0;
+        
+        rows.forEach((row) => {
+          try {
+            let selectedOption = '';
+            
+            // Try different ways to access Selected Option field
+            if (row.get) {
+              selectedOption = row.get('Selected Option') || row.get('SelectedOption') || row.get('Option') || '';
+            }
+            
+            if (!selectedOption) {
+              selectedOption = row['Selected Option'] || row.SelectedOption || row.Option || '';
+            }
+            
+            if (!selectedOption && row._rawData && row._rawData[selectedOptionIndex]) {
+              selectedOption = row._rawData[selectedOptionIndex] || '';
+            }
+            
+            selectedOption = String(selectedOption || '').trim();
+            
+            // Check if this row has the selected option
+            if (selectedOption === optionId || selectedOption === parseInt(optionId).toString()) {
+              addedCount++;
+            }
+          } catch (e) {
+            console.error(`[getCounter] Error processing row:`, e);
+          }
+        });
         
         // Display count = Base value + Added count
         const displayCount = baseValue + addedCount;
@@ -109,7 +152,8 @@ export default async function handler(req, res) {
         break;
 
       case 'incrementCounter':
-        // Increment counter for a specific option
+        // Increment counter for a specific option - now handled via waitlist sheet
+        // This action just returns the updated count (actual increment happens when email is added)
         if (!optionId) {
           return res.status(400).json({ error: 'Missing optionId parameter' });
         }
@@ -122,41 +166,62 @@ export default async function handler(req, res) {
         };
         const incBaseValue = incBaseValues[optionId] || 0;
         
-        const incCounterSheet = doc.sheetsByIndex[0];
-        await incCounterSheet.loadCells('A:B');
-        
-        // Find row with matching Option
-        let incRowIndex = -1;
-        let currentAddedCount = 0;
-        for (let row = 1; row <= incCounterSheet.rowCount; row++) {
-          const optionCell = incCounterSheet.getCell(row, 0);
-          if (optionCell.value === optionId || optionCell.value === parseInt(optionId)) {
-            incRowIndex = row;
-            const countCell = incCounterSheet.getCell(row, 1);
-            currentAddedCount = parseInt(countCell.value) || 0;
-            break;
-          }
+        // Get waitlist sheet
+        let incCounterSheet;
+        if (doc.sheetCount > 1) {
+          incCounterSheet = doc.sheetsByIndex[1];
+        } else {
+          incCounterSheet = doc.sheetsByIndex[0];
         }
         
-        // Increment the added count (not the display count)
-        const newAddedCount = currentAddedCount + 1;
+        if (!incCounterSheet) {
+          throw new Error('Waitlist sheet not found');
+        }
         
-        if (incRowIndex > 0) {
-          // Update existing row
-          const countCell = incCounterSheet.getCell(incRowIndex, 1);
-          countCell.value = newAddedCount;
-          await incCounterSheet.saveUpdatedCells();
-        } else {
-          // Add new row
-          await incCounterSheet.addRow({
-            Option: optionId,
-            Count: newAddedCount
+        // Load header row to find "Selected Option" column
+        await incCounterSheet.loadHeaderRow();
+        const incHeaderValues = incCounterSheet.headerValues;
+        const incSelectedOptionIndex = incHeaderValues.findIndex(h => 
+          h.toLowerCase() === 'selected option' || 
+          h.toLowerCase() === 'selectedoption' ||
+          h.toLowerCase() === 'option'
+        );
+        
+        // Count rows with matching Selected Option
+        const incRows = await incCounterSheet.getRows();
+        let addedCount = 0;
+        
+        if (incSelectedOptionIndex !== -1) {
+          incRows.forEach((row) => {
+            try {
+              let selectedOption = '';
+              
+              if (row.get) {
+                selectedOption = row.get('Selected Option') || row.get('SelectedOption') || row.get('Option') || '';
+              }
+              
+              if (!selectedOption) {
+                selectedOption = row['Selected Option'] || row.SelectedOption || row.Option || '';
+              }
+              
+              if (!selectedOption && row._rawData && row._rawData[incSelectedOptionIndex]) {
+                selectedOption = row._rawData[incSelectedOptionIndex] || '';
+              }
+              
+              selectedOption = String(selectedOption || '').trim();
+              
+              if (selectedOption === optionId || selectedOption === parseInt(optionId).toString()) {
+                addedCount++;
+              }
+            } catch (e) {
+              console.error(`[incrementCounter] Error processing row:`, e);
+            }
           });
         }
         
-        // Display count = Base value + New added count
-        const displayCountAfterIncrement = incBaseValue + newAddedCount;
-        console.log(`[incrementCounter] Option ${optionId}: Base=${incBaseValue}, Added=${newAddedCount}, Display=${displayCountAfterIncrement}`);
+        // Display count = Base value + Added count
+        const displayCountAfterIncrement = incBaseValue + addedCount;
+        console.log(`[incrementCounter] Option ${optionId}: Base=${incBaseValue}, Added=${addedCount}, Display=${displayCountAfterIncrement}`);
         
         result = { count: displayCountAfterIncrement };
         break;
@@ -183,7 +248,8 @@ export default async function handler(req, res) {
           // Load header to understand column structure
           await waitlistSheet.loadHeaderRow();
           
-          await waitlistSheet.addRow({
+          // Prepare row data with Selected Option if provided
+          const rowData = {
             Email: values.email,
             'Created Date': values.createdDate || new Date().toISOString(),
             Browser: values.browser || '',
@@ -193,7 +259,14 @@ export default async function handler(req, res) {
             Language: values.language || '',
             Timezone: values.timezone || '',
             'Form Source': values.formSource || 'modal'
-          });
+          };
+          
+          // Add Selected Option if provided
+          if (values.selectedOption) {
+            rowData['Selected Option'] = values.selectedOption;
+          }
+          
+          await waitlistSheet.addRow(rowData);
           
           // Get updated count after adding email (use same logic as getWaitlistCount)
           const rows = await waitlistSheet.getRows();
