@@ -3052,16 +3052,32 @@
         }
 
         const data = await response.json();
-        const count = data.count || (optionId === '1' ? 27 : optionId === '2' ? 12 : 5);
         
-        // Save to localStorage as cache
-        localStorage.setItem(`counter_${optionId}`, count.toString());
-        return count;
+        // API returns display count (base + added), use it directly
+        if (data.count !== undefined && data.count !== null) {
+          const count = parseInt(data.count);
+          if (!isNaN(count) && count > 0) {
+            // Save to localStorage as cache
+            localStorage.setItem(`counter_${optionId}`, count.toString());
+            return count;
+          }
+        }
+        
+        // Fallback: use base value if API doesn't return valid count
+        const baseValue = optionId === '1' ? 27 : optionId === '2' ? 12 : 5;
+        return baseValue;
       } catch (error) {
         console.error('Error fetching counter:', error);
-        // Fallback to localStorage
+        // Fallback to localStorage if available, otherwise use base value
         const saved = localStorage.getItem(`counter_${optionId}`);
-        return saved ? parseInt(saved) : (optionId === '1' ? 27 : optionId === '2' ? 12 : 5);
+        if (saved) {
+          const savedCount = parseInt(saved);
+          if (!isNaN(savedCount) && savedCount > 0) {
+            return savedCount;
+          }
+        }
+        // Last resort: return base value
+        return optionId === '1' ? 27 : optionId === '2' ? 12 : 5;
       }
     }
 
@@ -3086,18 +3102,49 @@
         }
 
         const data = await response.json();
-        const newCount = data.count || (parseInt(localStorage.getItem(`counter_${optionId}`) || (optionId === '1' ? 27 : optionId === '2' ? 12 : 5)) + 1);
         
-        // Save to localStorage as cache
-        localStorage.setItem(`counter_${optionId}`, newCount.toString());
-        return newCount;
+        // API returns display count (base + added), use it directly
+        if (data.count !== undefined && data.count !== null) {
+          const newCount = parseInt(data.count);
+          if (!isNaN(newCount) && newCount > 0) {
+            // Save to localStorage as cache
+            localStorage.setItem(`counter_${optionId}`, newCount.toString());
+            return newCount;
+          }
+        }
+        
+        // Fallback: increment current cached value or use base + 1
+        const baseValue = optionId === '1' ? 27 : optionId === '2' ? 12 : 5;
+        const cached = localStorage.getItem(`counter_${optionId}`);
+        if (cached) {
+          const cachedCount = parseInt(cached);
+          if (!isNaN(cachedCount) && cachedCount > 0) {
+            const newValue = cachedCount + 1;
+            localStorage.setItem(`counter_${optionId}`, newValue.toString());
+            return newValue;
+          }
+        }
+        // Last resort: base value + 1
+        const fallbackValue = baseValue + 1;
+        localStorage.setItem(`counter_${optionId}`, fallbackValue.toString());
+        return fallbackValue;
       } catch (error) {
         console.error('Error incrementing counter:', error);
-        // Fallback to localStorage - increment locally
-        const current = parseInt(localStorage.getItem(`counter_${optionId}`) || (optionId === '1' ? 27 : optionId === '2' ? 12 : 5));
-        const newValue = current + 1;
-        localStorage.setItem(`counter_${optionId}`, newValue.toString());
-        return newValue;
+        // Fallback: increment current cached value or use base + 1
+        const baseValue = optionId === '1' ? 27 : optionId === '2' ? 12 : 5;
+        const cached = localStorage.getItem(`counter_${optionId}`);
+        if (cached) {
+          const cachedCount = parseInt(cached);
+          if (!isNaN(cachedCount) && cachedCount > 0) {
+            const newValue = cachedCount + 1;
+            localStorage.setItem(`counter_${optionId}`, newValue.toString());
+            return newValue;
+          }
+        }
+        // Last resort: base value + 1
+        const fallbackValue = baseValue + 1;
+        localStorage.setItem(`counter_${optionId}`, fallbackValue.toString());
+        return fallbackValue;
       }
     }
 

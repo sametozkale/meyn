@@ -76,29 +76,36 @@ export default async function handler(req, res) {
           return res.status(400).json({ error: 'Missing optionId parameter' });
         }
         
+        // Base values for each option
+        const baseValues = {
+          '1': 27,
+          '2': 12,
+          '3': 5
+        };
+        const baseValue = baseValues[optionId] || 0;
+        
         const counterSheet = doc.sheetsByIndex[0]; // First sheet for counters
         await counterSheet.loadCells('A:B'); // Load Option and Count columns
         
         // Find row with matching Option
-        let count = 0;
+        let addedCount = 0;
         let found = false;
         for (let row = 1; row <= counterSheet.rowCount; row++) {
           const optionCell = counterSheet.getCell(row, 0); // Column A
           const countCell = counterSheet.getCell(row, 1); // Column B
           
-          if (optionCell.value === optionId) {
-            count = parseInt(countCell.value) || 0;
+          if (optionCell.value === optionId || optionCell.value === parseInt(optionId)) {
+            addedCount = parseInt(countCell.value) || 0;
             found = true;
             break;
           }
         }
         
-        // If not found, return default
-        if (!found) {
-          count = optionId === '1' ? 27 : optionId === '2' ? 12 : 5;
-        }
+        // Display count = Base value + Added count
+        const displayCount = baseValue + addedCount;
+        console.log(`[getCounter] Option ${optionId}: Base=${baseValue}, Added=${addedCount}, Display=${displayCount}`);
         
-        result = { count };
+        result = { count: displayCount };
         break;
 
       case 'incrementCounter':
@@ -107,38 +114,51 @@ export default async function handler(req, res) {
           return res.status(400).json({ error: 'Missing optionId parameter' });
         }
         
+        // Base values for each option
+        const incBaseValues = {
+          '1': 27,
+          '2': 12,
+          '3': 5
+        };
+        const incBaseValue = incBaseValues[optionId] || 0;
+        
         const incCounterSheet = doc.sheetsByIndex[0];
         await incCounterSheet.loadCells('A:B');
         
         // Find row with matching Option
-        let rowIndex = -1;
-        let currentCount = 0;
+        let incRowIndex = -1;
+        let currentAddedCount = 0;
         for (let row = 1; row <= incCounterSheet.rowCount; row++) {
           const optionCell = incCounterSheet.getCell(row, 0);
-          if (optionCell.value === optionId) {
-            rowIndex = row;
+          if (optionCell.value === optionId || optionCell.value === parseInt(optionId)) {
+            incRowIndex = row;
             const countCell = incCounterSheet.getCell(row, 1);
-            currentCount = parseInt(countCell.value) || 0;
+            currentAddedCount = parseInt(countCell.value) || 0;
             break;
           }
         }
         
-        const newCount = currentCount + 1;
+        // Increment the added count (not the display count)
+        const newAddedCount = currentAddedCount + 1;
         
-        if (rowIndex > 0) {
+        if (incRowIndex > 0) {
           // Update existing row
-          const countCell = incCounterSheet.getCell(rowIndex, 1);
-          countCell.value = newCount;
+          const countCell = incCounterSheet.getCell(incRowIndex, 1);
+          countCell.value = newAddedCount;
           await incCounterSheet.saveUpdatedCells();
         } else {
           // Add new row
           await incCounterSheet.addRow({
             Option: optionId,
-            Count: newCount
+            Count: newAddedCount
           });
         }
         
-        result = { count: newCount };
+        // Display count = Base value + New added count
+        const displayCountAfterIncrement = incBaseValue + newAddedCount;
+        console.log(`[incrementCounter] Option ${optionId}: Base=${incBaseValue}, Added=${newAddedCount}, Display=${displayCountAfterIncrement}`);
+        
+        result = { count: displayCountAfterIncrement };
         break;
 
       case 'addToWaitlist':
