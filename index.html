@@ -3481,7 +3481,24 @@
           }
 
           const data = await response.json();
-          const newCount = data.count || (parseInt(localStorage.getItem('waitlistCount') || '254') + 1);
+          
+          // Use count from API response, or calculate from current count + 1
+          let newCount;
+          if (data.count !== undefined && data.count !== null) {
+            newCount = parseInt(data.count);
+          } else {
+            // Fallback: get current count and increment
+            const currentCount = await getTotalWaitlistCount().catch(() => {
+              const cached = parseInt(localStorage.getItem('waitlistCount') || '254');
+              return cached;
+            });
+            newCount = currentCount + 1;
+          }
+          
+          // Ensure we have a valid count
+          if (isNaN(newCount) || newCount <= 0) {
+            newCount = 254; // Absolute fallback
+          }
           
           // Update counter display immediately with new count
           updateWaitlistCounter(newCount);
@@ -3497,7 +3514,9 @@
       }
 
       // Function to get total waitlist count from Google Sheets
-      async function getTotalWaitlistCount() {
+      async function getTotalWaitlistCount(retryCount = 0) {
+        const maxRetries = 2;
+        
         try {
           const response = await fetch(SHEETS_CONFIG.proxyUrl, {
             method: 'POST',
@@ -3513,29 +3532,56 @@
           if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
             const errorMsg = errorData.error || `API request failed with status ${response.status}`;
+            
+            // Retry on 500 errors
+            if (response.status === 500 && retryCount < maxRetries) {
+              console.warn(`API request failed, retrying... (${retryCount + 1}/${maxRetries})`);
+              await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1))); // Exponential backoff
+              return getTotalWaitlistCount(retryCount + 1);
+            }
+            
             throw new Error(errorMsg);
           }
 
           const data = await response.json();
           
-          // Always use the count from API, don't fallback to default
+          // Always use the count from API
           if (data.count !== undefined && data.count !== null) {
             const count = parseInt(data.count);
-            // Save to localStorage as cache
-            localStorage.setItem('waitlistCount', count.toString());
-            return count;
-          } else {
-            // If API doesn't return count, try localStorage, otherwise use default
-            const cached = parseInt(localStorage.getItem('waitlistCount') || '254');
-            console.warn('API did not return count, using cached value:', cached);
-            return cached;
+            // Only save to localStorage if we got a valid count from API
+            if (!isNaN(count) && count > 0) {
+              localStorage.setItem('waitlistCount', count.toString());
+              return count;
+            }
           }
+          
+          // If API doesn't return valid count, throw error to trigger retry or fallback
+          throw new Error('API did not return valid count');
         } catch (error) {
           console.error('Error fetching total waitlist count:', error);
-          // Try localStorage as fallback, but log a warning
-          const cached = parseInt(localStorage.getItem('waitlistCount') || '254');
-          console.warn('Using cached waitlist count due to API error:', cached);
-          return cached;
+          
+          // Only use localStorage if it has a real value (not default 254)
+          const cached = localStorage.getItem('waitlistCount');
+          if (cached && cached !== '254') {
+            const cachedCount = parseInt(cached);
+            if (!isNaN(cachedCount) && cachedCount > 0) {
+              console.warn('Using cached waitlist count due to API error:', cachedCount);
+              return cachedCount;
+            }
+          }
+          
+          // Retry once more if we haven't retried yet
+          if (retryCount < maxRetries) {
+            console.warn(`Retrying API call... (${retryCount + 1}/${maxRetries})`);
+            await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)));
+            return getTotalWaitlistCount(retryCount + 1);
+          }
+          
+          // Last resort: if we have a cached value, use it even if it's 254
+          // Otherwise return 254 as absolute fallback
+          const finalCached = parseInt(localStorage.getItem('waitlistCount') || '254');
+          console.warn('Using fallback waitlist count:', finalCached);
+          return finalCached;
         }
       }
 
@@ -3566,9 +3612,24 @@
 
       // Function to manually increment waitlist counter (for fallback when Google Sheets fails)
       function incrementWaitlistCounterLocal() {
-        const current = parseInt(localStorage.getItem('waitlistCount') || '254');
+        // Get current count from localStorage, but don't use default 254 if we have a real value
+        const cached = localStorage.getItem('waitlistCount');
+        let current;
+        
+        if (cached && cached !== '254') {
+          current = parseInt(cached);
+          if (isNaN(current) || current <= 0) {
+            current = 254; // Fallback only if cached value is invalid
+          }
+        } else {
+          // If no cached value or it's the default, try to get from API first
+          // But since this is a local fallback, we'll use 254 as last resort
+          current = 254;
+        }
+        
         const newCount = current + 1;
         updateWaitlistCounter(newCount);
+        localStorage.setItem('waitlistCount', newCount.toString());
         return newCount;
       }
 
