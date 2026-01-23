@@ -78,7 +78,7 @@ export default async function handler(req, res) {
     let result;
 
     switch (action) {
-      case 'getCounter':
+      case 'getCounter': {
         // Get counter value for a specific option from waitlist sheet
         if (!optionId) {
           return res.status(400).json({ error: 'Missing optionId parameter' });
@@ -158,6 +158,7 @@ export default async function handler(req, res) {
         
         result = { count: displayCount };
         break;
+      }
 
       case 'incrementCounter':
         // Increment counter for a specific option - now handled via waitlist sheet
@@ -234,7 +235,7 @@ export default async function handler(req, res) {
         result = { count: displayCountAfterIncrement };
         break;
 
-      case 'addToWaitlist':
+      case 'addToWaitlist': {
         // Add email to waitlist (or update existing entry if email was empty)
         if (!values) {
           return res.status(400).json({ error: 'Missing values parameter' });
@@ -397,7 +398,7 @@ export default async function handler(req, res) {
         }
         break;
 
-      case 'getWaitlistCount':
+      case 'getWaitlistCount': {
         // Get total waitlist count (excluding header row)
         try {
           // Try to get waitlist sheet (second sheet, or first if only one exists)
@@ -485,6 +486,7 @@ export default async function handler(req, res) {
           result = { count: 254 };
         }
         break;
+      }
 
       default:
         return res.status(400).json({ error: `Unknown action: ${action}` });
