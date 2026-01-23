@@ -331,7 +331,17 @@ export default async function handler(req, res) {
             rowData['Selected Option'] = values.selectedOption;
           }
           
-          await waitlistSheet.addRow(rowData);
+          console.log('[addToWaitlist] Adding new row to sheet:', JSON.stringify(rowData, null, 2));
+          console.log('[addToWaitlist] Sheet headers:', waitlistSheet.headerValues);
+          
+          try {
+            await waitlistSheet.addRow(rowData);
+            console.log('[addToWaitlist] Row added successfully to sheet');
+          } catch (addRowError) {
+            console.error('[addToWaitlist] Error adding row:', addRowError);
+            console.error('[addToWaitlist] Error details:', addRowError.message, addRowError.stack);
+            throw addRowError;
+          }
           
           // Get updated count after adding email (use same logic as getWaitlistCount)
           const rows = await waitlistSheet.getRows();
