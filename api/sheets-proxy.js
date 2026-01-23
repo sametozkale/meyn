@@ -160,6 +160,9 @@ export default async function handler(req, res) {
             throw new Error('Waitlist sheet not found');
           }
           
+          // Load header to understand column structure
+          await waitlistSheet.loadHeaderRow();
+          
           await waitlistSheet.addRow({
             Email: values.email,
             'Created Date': values.createdDate || new Date().toISOString(),
@@ -172,31 +175,51 @@ export default async function handler(req, res) {
             'Form Source': values.formSource || 'modal'
           });
           
-          // Get updated count after adding email
+          // Get updated count after adding email (use same logic as getWaitlistCount)
           const rows = await waitlistSheet.getRows();
-          const emailRows = rows.filter(row => {
+          const headerValues = waitlistSheet.headerValues;
+          
+          let validEmailCount = 0;
+          rows.forEach((row, index) => {
             try {
               let email = '';
+              
               if (row.get) {
                 email = row.get('Email') || '';
-              } else if (row.Email) {
-                email = row.Email;
-              } else if (row.email) {
-                email = row.email;
-              } else if (row._rawData && row._rawData[0]) {
+              }
+              
+              if (!email) {
+                email = row.Email || row.email || row.EMAIL || '';
+              }
+              
+              if (!email && headerValues && headerValues.length > 0) {
+                const emailIndex = headerValues.findIndex(h => h.toLowerCase() === 'email');
+                if (emailIndex >= 0 && row._rawData && row._rawData[emailIndex]) {
+                  email = row._rawData[emailIndex] || '';
+                }
+              }
+              
+              if (!email && row._rawData && row._rawData[0]) {
                 email = row._rawData[0] || '';
               }
+              
               email = String(email || '').trim();
-              return email !== '' && 
-                     email.includes('@') && 
-                     email.toLowerCase() !== 'email' &&
-                     !email.toLowerCase().startsWith('email');
+              const isValidEmail = email !== '' && 
+                                   email.includes('@') && 
+                                   email.toLowerCase() !== 'email' &&
+                                   !email.toLowerCase().startsWith('email') &&
+                                   email.length > 3;
+              
+              if (isValidEmail) {
+                validEmailCount++;
+              }
             } catch (e) {
-              console.error('[addToWaitlist] Error filtering row:', e);
-              return false;
+              console.error(`[addToWaitlist] Error processing row ${index}:`, e);
             }
           });
-          const newCount = emailRows.length > 0 ? emailRows.length : 254;
+          
+          const newCount = validEmailCount > 0 ? validEmailCount : 254;
+          console.log(`[addToWaitlist] Valid email count after adding: ${validEmailCount}, Returning: ${newCount}`);
           
           result = { success: true, count: newCount };
         } catch (sheetError) {
@@ -220,48 +243,75 @@ export default async function handler(req, res) {
             throw new Error('Waitlist sheet not found');
           }
           
+          // Load header row first to understand column structure
+          await countSheet.loadHeaderRow();
+          const headerValues = countSheet.headerValues;
+          console.log('[getWaitlistCount] Header values:', headerValues);
+          
           const rows = await countSheet.getRows();
+          console.log('[getWaitlistCount] Total rows:', rows.length);
           
           // Count only rows with valid email addresses
-          // getRows() already excludes header row, so we just need to filter valid emails
-          let totalCount = 254; // Default value
+          // getRows() already excludes header row
+          let validEmailCount = 0;
           
           if (rows && rows.length > 0) {
             // Filter rows with valid email addresses
-            const emailRows = rows.filter(row => {
+            rows.forEach((row, index) => {
               try {
                 // Try different ways to access email field
                 let email = '';
+                
+                // First try: use get() method with header name
                 if (row.get) {
                   email = row.get('Email') || '';
-                } else if (row.Email) {
-                  email = row.Email;
-                } else if (row.email) {
-                  email = row.email;
-                } else if (row._rawData && row._rawData[0]) {
-                  // Try to get from raw data (first column)
+                }
+                
+                // Second try: direct property access (case-insensitive)
+                if (!email) {
+                  email = row.Email || row.email || row.EMAIL || '';
+                }
+                
+                // Third try: access by header index if Email is first column
+                if (!email && headerValues && headerValues.length > 0) {
+                  const emailIndex = headerValues.findIndex(h => h.toLowerCase() === 'email');
+                  if (emailIndex >= 0 && row._rawData && row._rawData[emailIndex]) {
+                    email = row._rawData[emailIndex] || '';
+                  }
+                }
+                
+                // Fourth try: first column if no header match
+                if (!email && row._rawData && row._rawData[0]) {
                   email = row._rawData[0] || '';
                 }
                 
                 // Check if it's a valid email (contains @ and not empty)
                 email = String(email || '').trim();
-                return email !== '' && 
-                       email.includes('@') && 
-                       email.toLowerCase() !== 'email' &&
-                       !email.toLowerCase().startsWith('email');
+                const isValidEmail = email !== '' && 
+                                     email.includes('@') && 
+                                     email.toLowerCase() !== 'email' &&
+                                     !email.toLowerCase().startsWith('email') &&
+                                     email.length > 3; // Basic email validation
+                
+                if (isValidEmail) {
+                  validEmailCount++;
+                } else if (email) {
+                  console.log(`[getWaitlistCount] Skipping invalid email at row ${index}: "${email}"`);
+                }
               } catch (e) {
-                console.error('[getWaitlistCount] Error filtering row:', e);
-                return false;
+                console.error(`[getWaitlistCount] Error processing row ${index}:`, e);
               }
             });
-            
-            // Use actual count if we found valid emails, otherwise use default
-            totalCount = emailRows.length > 0 ? emailRows.length : 254;
           }
+          
+          // Use actual count, minimum 254 if no emails found
+          const totalCount = validEmailCount > 0 ? validEmailCount : 254;
+          console.log(`[getWaitlistCount] Valid email count: ${validEmailCount}, Returning: ${totalCount}`);
           
           result = { count: totalCount };
         } catch (sheetError) {
           console.error('[getWaitlistCount] Sheet error:', sheetError);
+          console.error('[getWaitlistCount] Error stack:', sheetError.stack);
           // Return default count if sheet access fails
           result = { count: 254 };
         }
