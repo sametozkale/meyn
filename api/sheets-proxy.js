@@ -245,34 +245,70 @@ export default async function handler(req, res) {
           
           // Load header to understand column structure
           await waitlistSheet.loadHeaderRow();
+          const headerValues = waitlistSheet.headerValues;
           
-          // Always add new row (simplified - no update logic)
-          const rowData = {
-            Email: emailValue,
-            'Created Date': values.createdDate || new Date().toISOString(),
-            Browser: values.browser || '',
-            OS: values.os || '',
-            Device: values.device || '',
-            'User Agent': values.userAgent || '',
-            Language: values.language || '',
-            Timezone: values.timezone || '',
-            'Form Source': values.formSource || 'modal'
-          };
+          console.log('[addToWaitlist] Sheet headers:', headerValues);
+          console.log('[addToWaitlist] Email value:', emailValue);
+          console.log('[addToWaitlist] Selected Option:', values.selectedOption);
           
-          // Add Selected Option if provided
-          if (values.selectedOption) {
+          // Map data to header column names exactly as they appear in the sheet
+          // This ensures proper column mapping
+          const rowData = {};
+          
+          // Find exact header names (case-insensitive matching)
+          headerValues.forEach((header, index) => {
+            const headerLower = header.toLowerCase();
+            
+            if (headerLower === 'email') {
+              rowData[header] = emailValue;
+            } else if (headerLower === 'created date' || headerLower === 'createddate' || headerLower === 'date') {
+              rowData[header] = values.createdDate || new Date().toISOString();
+            } else if (headerLower === 'browser') {
+              rowData[header] = values.browser || '';
+            } else if (headerLower === 'os' || headerLower === 'operating system') {
+              rowData[header] = values.os || '';
+            } else if (headerLower === 'device') {
+              rowData[header] = values.device || '';
+            } else if (headerLower === 'user agent' || headerLower === 'useragent') {
+              rowData[header] = values.userAgent || '';
+            } else if (headerLower === 'language') {
+              rowData[header] = values.language || '';
+            } else if (headerLower === 'timezone') {
+              rowData[header] = values.timezone || '';
+            } else if (headerLower === 'form source' || headerLower === 'formsource' || headerLower === 'source') {
+              rowData[header] = values.formSource || 'modal';
+            } else if (headerLower === 'selected option' || headerLower === 'selectedoption' || headerLower === 'option') {
+              rowData[header] = values.selectedOption || '';
+            }
+          });
+          
+          // If Selected Option column doesn't exist in headers but we have a value, add it
+          const hasSelectedOptionColumn = headerValues.some(h => 
+            h.toLowerCase() === 'selected option' || 
+            h.toLowerCase() === 'selectedoption' ||
+            h.toLowerCase() === 'option'
+          );
+          
+          if (!hasSelectedOptionColumn && values.selectedOption) {
+            // Try to add with common name variations
             rowData['Selected Option'] = values.selectedOption;
           }
           
-          console.log('[addToWaitlist] Adding new row to sheet:', JSON.stringify(rowData, null, 2));
-          console.log('[addToWaitlist] Sheet headers:', waitlistSheet.headerValues);
+          console.log('[addToWaitlist] Mapped row data:', JSON.stringify(rowData, null, 2));
           
           try {
-            await waitlistSheet.addRow(rowData);
+            const addedRow = await waitlistSheet.addRow(rowData);
             console.log('[addToWaitlist] Row added successfully to sheet');
+            console.log('[addToWaitlist] Added row data:', addedRow);
+            
+            // Verify the row was added by checking if we can read it back
+            const verifyRows = await waitlistSheet.getRows({ limit: 1, offset: 0 });
+            console.log('[addToWaitlist] Verification - Last row:', verifyRows.length > 0 ? verifyRows[verifyRows.length - 1] : 'No rows found');
           } catch (addRowError) {
             console.error('[addToWaitlist] Error adding row:', addRowError);
-            console.error('[addToWaitlist] Error details:', addRowError.message, addRowError.stack);
+            console.error('[addToWaitlist] Error details:', addRowError.message);
+            console.error('[addToWaitlist] Error stack:', addRowError.stack);
+            console.error('[addToWaitlist] Row data that failed:', JSON.stringify(rowData, null, 2));
             throw addRowError;
           }
           
