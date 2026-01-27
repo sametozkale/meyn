@@ -3,20 +3,32 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <!-- Performance: Preconnect to external resources -->
+  <link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin />
+  <link rel="dns-prefetch" href="https://cdn.tailwindcss.com" />
+  
+  <!-- SEO: Primary Meta Tags -->
   <title>Manifesto | Meyn AI</title>
   <meta name="description" content="Every day, vibe coders hit roadblocks while coding with AI. The problem isn't AI—it's orchestration. We're building PromptOps: a platform that orchestrates your AI coding agents with structured specs, real-time tracking, and visual traceability." />
+  <meta name="keywords" content="PromptOps, AI coding, manifesto, spec-driven development, AI orchestration" />
+  <meta name="author" content="Meyn AI" />
+  <link rel="canonical" href="https://meyn.work/manifesto.html" />
   
-  <!-- Open Graph / Facebook -->
+  <!-- SEO: Open Graph / Facebook -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://meyn.work/manifesto.html" />
   <meta property="og:title" content="Manifesto - The future of AI-powered development | PromptOps" />
   <meta property="og:description" content="Every day, vibe coders hit roadblocks while coding with AI. The problem isn't AI—it's orchestration. We're building PromptOps: a platform that orchestrates your AI coding agents with structured specs." />
+  <meta property="og:site_name" content="Meyn AI" />
   
-  <!-- Twitter -->
-  <meta property="twitter:card" content="summary_large_image" />
-  <meta property="twitter:url" content="https://meyn.work/manifesto.html" />
-  <meta property="twitter:title" content="Manifesto - The future of AI-powered development | PromptOps" />
-  <meta property="twitter:description" content="Every day, vibe coders hit roadblocks while coding with AI. The problem isn't AI—it's orchestration. We're building PromptOps: a platform that orchestrates your AI coding agents with structured specs." />
+  <!-- SEO: Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://meyn.work/manifesto.html" />
+  <meta name="twitter:title" content="Manifesto - The future of AI-powered development | PromptOps" />
+  <meta name="twitter:description" content="Every day, vibe coders hit roadblocks while coding with AI. The problem isn't AI—it's orchestration. We're building PromptOps: a platform that orchestrates your AI coding agents with structured specs." />
+  
+  <!-- Performance: Load Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -156,14 +168,20 @@
   </style>
 </head>
 <body class="min-h-screen bg-[#FFFFFF] flex flex-col items-center font-open text-textMuted pt-24 sm:pt-32 md:pt-[176px] px-4 sm:px-6">
+  <!-- Accessibility: Skip to main content link -->
+  <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-primary focus:text-white focus:rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+    Skip to main content
+  </a>
+  
   <div class="relative w-full flex justify-center">
     <header
       class="fixed top-8 left-1/2 -translate-x-1/2 z-50 h-12 inline-flex flex-nowrap items-center gap-4 pl-4 pr-2 py-2 rounded-[200px] border border-black/5 bg-[#14141F] backdrop-blur-md shadow-[0_1px_4px_rgba(0,0,0,0.08),0_0_0_1px_rgba(0,0,0,0.05)] max-w-none"
+      role="banner"
       aria-label="Main navigation"
     >
-      <div class="w-5 h-6 shrink-0" aria-label="Logo">
-        <a href="index.html">
-          <img src="./Group 2.svg" alt="Logo" class="w-5 h-6 object-contain" />
+      <div class="w-5 h-6 shrink-0" aria-label="Meyn AI Logo">
+        <a href="index.html" aria-label="Meyn AI Home">
+          <img src="./Group 2.svg" alt="Meyn AI Logo" class="w-5 h-6 object-contain" width="20" height="24" loading="eager" />
         </a>
       </div>
       <a
@@ -188,7 +206,7 @@
   </div>
 
   <!-- Hero Section -->
-  <main class="flex flex-col items-center gap-4 sm:gap-6 w-full max-w-[640px] px-0">
+  <main id="main-content" role="main" class="flex flex-col items-center gap-4 sm:gap-6 w-full max-w-[640px] px-0">
     <!-- Badge -->
     <div class="inline-flex flex-wrap items-center justify-center gap-2 py-[6.5px] px-3 rounded-[99px] bg-[#F7F7F7]">
       <span class="text-xs font-medium leading-normal text-[#777] font-open">Our Vision</span>
@@ -350,7 +368,7 @@
     <div class="flex flex-col items-center justify-between w-full max-w-[1024px] mx-auto p-8 gap-8 lg:text-left lg:flex-row bg-gradient-to-b from-white to-[#F7F7F7] rounded-3xl border border-[#EDEDED]" style="border-color: rgba(247, 247, 247, 1);">
       <div class="flex justify-center w-full lg:justify-start">
         <a href="index.html">
-          <img src="./Group 2.svg" alt="Meyn AI Logo" class="h-8 w-auto" style="filter: brightness(0) saturate(100%) invert(9%) sepia(8%) saturate(2000%) hue-rotate(200deg) brightness(95%) contrast(95%);" />
+          <img src="./Group 2.svg" alt="Meyn AI Logo" class="h-8 w-auto" width="32" height="32" loading="lazy" style="filter: brightness(0) saturate(100%) invert(9%) sepia(8%) saturate(2000%) hue-rotate(200deg) brightness(95%) contrast(95%);" />
         </a>
       </div>
       <h2 id="footer-heading" class="sr-only">Footer Navigation</h2>

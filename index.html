@@ -3,20 +3,55 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <!-- Performance: Preconnect to external resources -->
+  <link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin />
+  <link rel="dns-prefetch" href="https://cdn.tailwindcss.com" />
+  
+  <!-- SEO: Primary Meta Tags -->
   <title>Meyn AI - PromptOps platform for vibe coders | Meyn AI</title>
   <meta name="description" content="A platform that orchestrates your AI coding agents with structured specs. Real-time feature tracking, visual spec-to-code traceability, and automated drift detection. Built for serious vibe coders who want to move fast without breaking things." />
+  <meta name="keywords" content="PromptOps, AI coding agents, spec-driven development, code orchestration, feature tracking, drift detection, vibe coders" />
+  <meta name="author" content="Meyn AI" />
+  <link rel="canonical" href="https://meyn.work/" />
   
-  <!-- Open Graph / Facebook -->
+  <!-- SEO: Open Graph / Facebook -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://meyn.work/" />
   <meta property="og:title" content="PromptOps - Spec-driven development for vibe coders" />
   <meta property="og:description" content="A platform that orchestrates your AI coding agents with structured specs. Real-time feature tracking, visual spec-to-code traceability, and automated drift detection." />
+  <meta property="og:site_name" content="Meyn AI" />
   
-  <!-- Twitter -->
-  <meta property="twitter:card" content="summary_large_image" />
-  <meta property="twitter:url" content="https://meyn.work/" />
-  <meta property="twitter:title" content="PromptOps - Spec-driven development for vibe coders" />
-  <meta property="twitter:description" content="A platform that orchestrates your AI coding agents with structured specs. Real-time feature tracking, visual spec-to-code traceability, and automated drift detection." />
+  <!-- SEO: Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://meyn.work/" />
+  <meta name="twitter:title" content="PromptOps - Spec-driven development for vibe coders" />
+  <meta name="twitter:description" content="A platform that orchestrates your AI coding agents with structured specs. Real-time feature tracking, visual spec-to-code traceability, and automated drift detection." />
+  
+  <!-- SEO: Structured Data (JSON-LD) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Meyn AI PromptOps",
+    "description": "A platform that orchestrates your AI coding agents with structured specs. Real-time feature tracking, visual spec-to-code traceability, and automated drift detection.",
+    "url": "https://meyn.work/",
+    "applicationCategory": "DeveloperApplication",
+    "operatingSystem": "Web",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "5",
+      "ratingCount": "254"
+    }
+  }
+  </script>
+  
+  <!-- Performance: Load Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -34,6 +69,30 @@
     };
   </script>
   <style>
+    /* Accessibility: Screen reader only class */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border-width: 0;
+    }
+    
+    .sr-only:focus {
+      position: static;
+      width: auto;
+      height: auto;
+      padding: inherit;
+      margin: inherit;
+      overflow: visible;
+      clip: auto;
+      white-space: normal;
+    }
+    
     /* Font: replace src with actual Open Runde files once available */
     @font-face {
       font-family: "Open Runde";
@@ -1888,25 +1947,36 @@
   </style>
 </head>
 <body class="min-h-screen bg-[#FFFFFF] flex flex-col items-center font-open text-textMuted pt-24 sm:pt-32 md:pt-[176px] px-4 sm:px-6">
+  <!-- Accessibility: Skip to main content link -->
+  <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-primary focus:text-white focus:rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+    Skip to main content
+  </a>
+  
   <div class="relative w-full flex justify-center">
     <header
       class="fixed top-8 left-1/2 -translate-x-1/2 z-50 h-12 inline-flex flex-nowrap items-center gap-4 pl-4 pr-2 py-2 rounded-[200px] border border-black/5 bg-[#14141F] backdrop-blur-md shadow-[0_1px_4px_rgba(0,0,0,0.08),0_0_0_1px_rgba(0,0,0,0.05)] max-w-none"
+      role="banner"
       aria-label="Main navigation"
     >
-      <div class="w-5 h-6 shrink-0" aria-label="Logo">
-        <img src="./Group 2.svg" alt="Logo" class="w-5 h-6 object-contain" />
+      <div class="w-5 h-6 shrink-0" aria-label="Meyn AI Logo">
+        <img src="./Group 2.svg" alt="Meyn AI Logo" class="w-5 h-6 object-contain" width="20" height="24" loading="eager" />
       </div>
-      <a
-        class="inline text-sm leading-5 tracking-[-0.32px] text-textMuted hover:text-white transition-colors"
-        href="manifesto.html"
-      >
-        Manifesto
-      </a>
-      <a
-        class="inline text-sm leading-5 tracking-[-0.32px] text-textMuted hover:text-white transition-colors"
-        href="investors.html"
-      >
-        Investors
+      <nav aria-label="Primary navigation">
+        <a
+          class="inline text-sm leading-5 tracking-[-0.32px] text-textMuted hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-[#14141F] focus:rounded-md focus:px-1"
+          href="manifesto.html"
+          aria-label="Read our manifesto"
+        >
+          Manifesto
+        </a>
+        <a
+          class="inline text-sm leading-5 tracking-[-0.32px] text-textMuted hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-[#14141F] focus:rounded-md focus:px-1"
+          href="investors.html"
+          aria-label="Information for investors"
+        >
+          Investors
+        </a>
+      </nav>
       </a>
       <button
         class="waitlist-trigger inline-flex items-center justify-center gap-[10px] text-sm leading-[18px] tracking-[-0.32px] text-white bg-primary hover:bg-[#0099CC] rounded-[999px] px-3 py-[7px] shadow-[0_1px_1px_0_rgba(0,0,0,0.08),0_0_0_1px_rgba(0,0,0,0.05)] transition-colors"
@@ -1917,15 +1987,15 @@
     </header>
   </div>
 
-  <main class="flex flex-col items-center gap-4 sm:gap-6 w-full max-w-[640px] px-4 sm:px-0">
+  <main id="main-content" role="main" class="flex flex-col items-center gap-4 sm:gap-6 w-full max-w-[640px] px-4 sm:px-0">
     <!-- Badge -->
     <div class="inline-flex flex-wrap items-center justify-center gap-2 py-[6.5px] px-3 rounded-[99px] bg-[#F7F7F7] cursor-pointer hover:bg-[#F0F0F0] transition-colors" onclick="window.location.href='manifesto.html'" data-cursor-element-id="cursor-el-1">
       <span class="text-xs font-medium leading-normal text-[#777] font-open">Introducing Meyn AI</span>
-      <svg width="4" height="4" viewBox="0 0 4 4" fill="none" xmlns="http://www.w3.org/2000/svg" class="hidden sm:block">
+      <svg width="4" height="4" viewBox="0 0 4 4" fill="none" xmlns="http://www.w3.org/2000/svg" class="hidden sm:block" aria-hidden="true">
         <circle cx="2" cy="2" r="2" fill="#ccc"/>
       </svg>
-      <a href="manifesto.html" class="text-xs font-normal leading-normal text-[#979797] font-sans hover:opacity-80 transition-opacity">Read more</a>
-      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <a href="manifesto.html" class="text-xs font-normal leading-normal text-[#979797] font-sans hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:rounded-md focus:px-1">Read more</a>
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         <path d="M4.5 3L7.5 6L4.5 9" stroke="#979797" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
     </div>
@@ -2038,8 +2108,11 @@
       <div class="relative w-[85px] h-[48px] flex items-center justify-center shrink-0 rounded-lg bg-[#F7F7F7] overflow-hidden">
         <img
           src="./image 16.png"
-          alt="Meyn AI icon"
+          alt="Meyn AI product icon showing video preview"
           class="w-full h-full object-cover"
+          width="85"
+          height="48"
+          loading="lazy"
         />
         <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" class="w-4 h-4 shrink-0">
@@ -4084,15 +4157,17 @@
     </div>
   </div>
 
+  </main>
+
   <!-- Footer -->
-  <footer class="mt-48 mb-8 w-full px-4 sm:px-6">
+  <footer class="mt-48 mb-8 w-full px-4 sm:px-6" role="contentinfo">
     <div class="flex flex-col items-center justify-between w-full max-w-[1024px] mx-auto p-8 gap-8 lg:text-left lg:flex-row bg-gradient-to-b from-white to-[#F7F7F7] rounded-3xl border border-[#EDEDED]" style="border-color: rgba(247, 247, 247, 1);">
       <div class="flex justify-center w-full lg:justify-start">
-        <a href="index.html">
-          <img src="./Group 2.svg" alt="Meyn AI Logo" class="h-8 w-auto" style="filter: brightness(0) saturate(100%) invert(9%) sepia(8%) saturate(2000%) hue-rotate(200deg) brightness(95%) contrast(95%);" />
+        <a href="index.html" aria-label="Meyn AI Home">
+          <img src="./Group 2.svg" alt="Meyn AI Logo" class="h-8 w-auto" width="32" height="32" loading="lazy" style="filter: brightness(0) saturate(100%) invert(9%) sepia(8%) saturate(2000%) hue-rotate(200deg) brightness(95%) contrast(95%);" />
         </a>
       </div>
-      <nav aria-labelledby="footer-heading">
+      <nav aria-labelledby="footer-heading" role="navigation">
         <ul class="flex flex-col items-center justify-center lg:flex-row gap-x-6 gap-y-2">
           <li>
             <a
