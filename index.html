@@ -535,18 +535,52 @@
     @media (max-width: 640px) {
       .waitlist-modal-content {
         width: 95%;
-        padding: 16px;
-        border-radius: 16px;
+        max-width: 100%;
+        padding: 24px 20px;
+        border-radius: 20px;
+        margin: 16px;
+      }
+      
+      .waitlist-modal-header {
+        margin-bottom: 16px;
       }
       
       .waitlist-modal-title {
-        font-size: 20px;
-        line-height: 28px;
+        font-size: 22px;
+        line-height: 30px;
       }
       
       .waitlist-modal-description {
-        font-size: 14px;
+        font-size: 15px;
+        line-height: 22px;
         margin-bottom: 24px;
+      }
+      
+      .waitlist-modal-form-group {
+        flex-direction: column;
+        gap: 12px;
+      }
+      
+      .waitlist-modal-input-wrapper {
+        width: 100%;
+      }
+      
+      .waitlist-modal-input {
+        width: 100%;
+        padding: 14px 16px 14px 44px;
+        font-size: 16px;
+      }
+      
+      .waitlist-modal-submit {
+        width: 100%;
+        padding: 14px;
+        font-size: 16px;
+        min-height: 48px;
+      }
+      
+      .waitlist-modal-footer {
+        margin-top: 20px;
+        font-size: 14px;
       }
     }
     
@@ -1951,7 +1985,7 @@
     }
   </style>
 </head>
-<body class="min-h-screen bg-[#FFFFFF] flex flex-col items-center font-open text-textMuted pt-24 sm:pt-32 md:pt-[176px] px-4 sm:px-6">
+<body class="min-h-screen bg-[#FFFFFF] flex flex-col items-center font-open text-textMuted pt-20 sm:pt-24 md:pt-32 lg:pt-[176px] px-4 sm:px-6">
   <!-- Accessibility: Skip to main content link -->
   <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-primary focus:text-white focus:rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
     Skip to main content
@@ -1959,7 +1993,7 @@
   
   <div class="relative w-full flex justify-center">
     <header
-      class="fixed top-8 left-1/2 -translate-x-1/2 z-50 h-12 inline-flex flex-nowrap items-center gap-4 pl-4 pr-2 py-2 rounded-[200px] border border-black/5 bg-[#14141F] backdrop-blur-md shadow-[0_1px_4px_rgba(0,0,0,0.08),0_0_0_1px_rgba(0,0,0,0.05)] max-w-none"
+      class="fixed top-4 sm:top-8 left-1/2 -translate-x-1/2 z-50 h-11 sm:h-12 inline-flex flex-nowrap items-center gap-2 sm:gap-4 pl-3 sm:pl-4 pr-2 py-2 rounded-[200px] border border-black/5 bg-[#14141F] backdrop-blur-md shadow-[0_1px_4px_rgba(0,0,0,0.08),0_0_0_1px_rgba(0,0,0,0.05)] max-w-[calc(100%-32px)] sm:max-w-none"
       role="banner"
       aria-label="Main navigation"
     >
@@ -1969,19 +2003,19 @@
         </a>
       </div>
       <a
-        class="inline text-sm leading-5 tracking-[-0.32px] text-textMuted hover:text-white transition-colors"
+        class="inline text-xs sm:text-sm leading-5 tracking-[-0.32px] text-textMuted hover:text-white transition-colors whitespace-nowrap"
         href="manifesto.html"
       >
         Manifesto
       </a>
       <a
-        class="inline text-sm leading-5 tracking-[-0.32px] text-textMuted hover:text-white transition-colors"
+        class="inline text-xs sm:text-sm leading-5 tracking-[-0.32px] text-textMuted hover:text-white transition-colors whitespace-nowrap"
         href="investors.html"
       >
         Investors
       </a>
       <button
-        class="waitlist-trigger inline-flex items-center justify-center gap-[10px] text-sm leading-[18px] tracking-[-0.32px] text-white bg-primary hover:bg-[#0099CC] rounded-[999px] px-3 py-[7px] shadow-[0_1px_1px_0_rgba(0,0,0,0.08),0_0_0_1px_rgba(0,0,0,0.05)] transition-colors"
+        class="waitlist-trigger inline-flex items-center justify-center gap-[8px] sm:gap-[10px] text-xs sm:text-sm leading-[18px] tracking-[-0.32px] text-white bg-primary hover:bg-[#0099CC] rounded-[999px] px-2.5 sm:px-3 py-[6px] sm:py-[7px] shadow-[0_1px_1px_0_rgba(0,0,0,0.08),0_0_0_1px_rgba(0,0,0,0.05)] transition-colors whitespace-nowrap"
         type="button"
       >
         Join waitlist
@@ -2059,9 +2093,9 @@
   <!-- Toast Container -->
   <div id="toast-container" class="toast-container"></div>
 
-  <div class="relative mt-12 sm:mt-16 md:mt-24 flex justify-center w-full px-4 sm:px-6">
-    <section class="w-full max-w-[1024px] h-[300px] sm:h-[400px] md:h-[500px] lg:h-[665px] rounded-2xl border border-[#EDEDED] relative" style="background: url('./Prompt Ops.jpg') no-repeat center center; background-size: cover;"></section>
-    <div class="absolute left-1/2 bottom-0 flex flex-col items-start gap-1.5 translate-x-[calc(50%+12px)] sm:translate-x-[calc(min(50vw,512px)+12px)]">
+  <div class="relative mt-12 sm:mt-16 md:mt-24 flex justify-center w-full px-0 sm:px-4 md:px-6">
+    <section class="w-full sm:max-w-[1024px] h-[250px] sm:h-[400px] md:h-[500px] lg:h-[665px] rounded-none sm:rounded-2xl border-0 sm:border border-[#EDEDED] relative" style="background: url('./Prompt Ops.jpg') no-repeat center center; background-size: cover;"></section>
+    <div class="absolute left-1/2 bottom-0 hidden sm:flex flex-col items-start gap-1.5 translate-x-[calc(50%+12px)] sm:translate-x-[calc(min(50vw,512px)+12px)]">
       <div class="option-btn flex items-center gap-1.5 py-2 px-2.5 rounded-[99px] border border-[#F4F4F4] bg-white cursor-pointer" data-option="1">
         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none" class="shrink-0 aspect-square option-icon">
           <g clip-path="url(#clip0_20_192_opt1)">
@@ -2105,9 +2139,9 @@
   </div>
 
   <!-- Info Card -->
-  <div class="w-fit mx-auto px-4 sm:px-0">
-    <div id="video-card" class="mt-6 h-[80px] p-4 flex items-start justify-center gap-4 rounded-[16px] border border-[#F7F7F7] hover:border-[#eee] bg-white shadow-none transition-colors cursor-pointer" style="width: fit-content;">
-      <div class="relative w-[85px] h-[48px] flex items-center justify-center shrink-0 rounded-lg bg-[#F7F7F7] overflow-hidden">
+  <div class="w-full sm:w-fit mx-auto px-4 sm:px-0">
+    <div id="video-card" class="mt-6 h-auto sm:h-[80px] p-3 sm:p-4 flex items-start justify-center gap-3 sm:gap-4 rounded-[16px] border border-[#F7F7F7] hover:border-[#eee] bg-white shadow-none transition-colors cursor-pointer w-full sm:w-fit">
+      <div class="relative w-[70px] sm:w-[85px] h-[40px] sm:h-[48px] flex items-center justify-center shrink-0 rounded-lg bg-[#F7F7F7] overflow-hidden">
         <img
           src="./image 16.png"
           alt="Meyn AI product icon showing video preview"
@@ -2117,7 +2151,7 @@
           loading="lazy"
         />
         <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" class="w-4 h-4 shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" class="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0">
             <g clip-path="url(#clip0_59_744)">
               <path fill-rule="evenodd" clip-rule="evenodd" d="M4.17973 0.542551C5.40699 0.405755 6.68763 0.285767 7.99999 0.285767C9.31236 0.285767 10.593 0.405755 11.8202 0.542551C13.7311 0.755537 15.2664 2.28954 15.4712 4.2038C15.6018 5.42472 15.7143 6.69678 15.7143 8.00005C15.7143 9.30331 15.6018 10.5754 15.4712 11.7963C15.2664 13.7106 13.7311 15.2446 11.8202 15.4575C10.593 15.5943 9.31236 15.7143 7.99999 15.7143C6.68763 15.7143 5.40699 15.5943 4.17973 15.4575C2.26893 15.2446 0.7336 13.7106 0.528796 11.7963C0.398172 10.5754 0.285706 9.30331 0.285706 8.00005C0.285706 6.69678 0.398172 5.42472 0.528796 4.2038C0.733599 2.28954 2.26893 0.755537 4.17973 0.542551ZM5.32736 10.6786C5.19966 9.84404 5.05788 8.74878 5.05788 8.00008C5.05788 7.25134 5.19972 6.15604 5.32747 5.32145C5.42683 4.67232 6.06612 4.25681 6.69047 4.46033C8.50323 5.05124 10.2035 5.98205 11.3511 7.40886C11.6296 7.75498 11.6295 8.24516 11.3511 8.59126C10.2034 10.018 8.50315 10.9489 6.69038 11.5398C6.066 11.7434 5.42669 11.3278 5.32736 10.6786Z" fill="white"/>
             </g>
@@ -2129,9 +2163,9 @@
           </svg>
         </div>
       </div>
-      <div class="flex flex-col items-start gap-1">
-        <p class="text-sm leading-5 tracking-[-0.32px] text-[#181925] font-medium">Learn why we're building</p>
-        <p class="text-sm leading-5 tracking-[-0.32px] text-[#979797] font-normal">Watch the video</p>
+      <div class="flex flex-col items-start gap-0.5 sm:gap-1">
+        <p class="text-xs sm:text-sm leading-4 sm:leading-5 tracking-[-0.32px] text-[#181925] font-medium">Learn why we're building</p>
+        <p class="text-xs sm:text-sm leading-4 sm:leading-5 tracking-[-0.32px] text-[#979797] font-normal">Watch the video</p>
       </div>
     </div>
   </div>
@@ -2215,28 +2249,28 @@
   </div>
 
   <!-- FAQ Section -->
-  <div class="mt-48 flex flex-col items-center gap-4 w-full px-4 sm:px-0">
+  <div class="mt-24 sm:mt-32 md:mt-48 flex flex-col items-center gap-4 sm:gap-4 w-full px-4 sm:px-0">
     <!-- Label -->
     <div class="inline-flex items-center gap-2 py-[6.5px] px-3 rounded-[12px] bg-[#F7F7F7]">
       <span class="text-xs font-medium leading-normal text-[#777] font-open">DISCOVER</span>
     </div>
 
     <!-- Title -->
-    <h2 class="self-stretch text-center text-[#181925] font-open text-[36px] font-medium leading-[44px] tracking-[-0.64px]">
-      Designed for<br/>serious vibe coders
+    <h2 class="self-stretch text-center text-[#181925] font-open text-2xl sm:text-3xl md:text-[36px] font-medium leading-[32px] sm:leading-[40px] md:leading-[44px] tracking-[-0.64px] px-4 sm:px-0">
+      Designed for<br class="hidden sm:block"/>serious vibe coders
     </h2>
 
     <!-- Description -->
-    <p class="self-stretch text-center text-[#777] font-open text-base font-normal leading-6 tracking-[-0.32px]">
+    <p class="self-stretch text-center text-[#777] font-open text-sm sm:text-base font-normal leading-5 sm:leading-6 tracking-[-0.32px] px-4 sm:px-0">
       Find answers to common questions about PromptOps platform
     </p>
   </div>
 
   <!-- FAQ Items -->
-  <div class="mt-16 flex flex-col items-center gap-0 w-full px-4 sm:px-0 max-w-[1024px] mx-0">
+  <div class="mt-12 sm:mt-16 flex flex-col items-center gap-0 w-full px-4 sm:px-0 max-w-[1024px] mx-0">
     <!-- FAQ Item 1 -->
-    <div class="flex flex-col sm:flex-row items-center gap-12 w-[1024px] h-[480px] px-5">
-      <div class="w-full sm:w-[492px] h-[300px] sm:h-[480px] bg-[#FAFAFA] rounded-[24px] shrink-0 version-history-animation overflow-hidden" style="aspect-ratio: 41 / 40;">
+    <div class="flex flex-col sm:flex-row items-center gap-8 sm:gap-12 w-full sm:w-[1024px] h-auto sm:h-[480px] px-4 sm:px-5 py-8 sm:py-0">
+      <div class="w-full sm:w-[492px] h-[200px] sm:h-[300px] md:h-[480px] bg-[#FAFAFA] rounded-[16px] sm:rounded-[24px] shrink-0 version-history-animation overflow-hidden" style="aspect-ratio: 41 / 40;">
         <svg viewBox="0 0 400 480" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
           <defs>
             <linearGradient id="timelineGradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -2320,19 +2354,19 @@
           </g>
         </svg>
       </div>
-      <div class="flex flex-col gap-4 flex-1 justify-center items-center">
-        <h3 class="flex flex-col justify-center w-[346px] h-[61px] text-center text-[#181925] font-open text-[24px] font-medium leading-[32px] tracking-[-0.42px]">Version History<br/>& Traceability</h3>
-        <p class="flex flex-col justify-center w-[346.055px] h-[68px] text-center text-[#666] font-open text-base font-normal leading-6 tracking-[-0.32px]">Specs must evolve but stay traceable; <br/>oral history and chat logs get lost.</p>
+      <div class="flex flex-col gap-4 sm:gap-4 flex-1 justify-center items-center w-full sm:w-auto">
+        <h3 class="flex flex-col justify-center w-full sm:w-[346px] h-auto sm:h-[61px] text-center text-[#181925] font-open text-xl sm:text-[24px] font-medium leading-[28px] sm:leading-[32px] tracking-[-0.42px] px-4 sm:px-0">Version History<br/>& Traceability</h3>
+        <p class="flex flex-col justify-center w-full sm:w-[346.055px] h-auto sm:h-[68px] text-center text-[#666] font-open text-sm sm:text-base font-normal leading-5 sm:leading-6 tracking-[-0.32px] px-4 sm:px-0">Specs must evolve but stay traceable; <br class="hidden sm:block"/>oral history and chat logs get lost.</p>
       </div>
     </div>
 
     <!-- FAQ Item 2 -->
-    <div class="flex flex-col sm:flex-row items-center gap-6 w-[1024px] h-[480px] px-[20px]">
-      <div class="flex flex-col gap-3 flex-1 justify-center items-center">
-        <h3 class="flex flex-col justify-center w-[216px] h-[61px] text-center text-[#181925] font-open text-[24px] font-medium leading-[32px] tracking-[-0.42px]">Spec Quality<br/>Gates</h3>
-        <p class="flex flex-col justify-center w-[346.055px] h-[68px] text-center text-[#666] font-open text-base font-normal leading-6 tracking-[-0.32px]">Validate specifications before code<br/>generation to catch ambiguity early</p>
+    <div class="flex flex-col sm:flex-row items-center gap-8 sm:gap-6 w-full sm:w-[1024px] h-auto sm:h-[480px] px-4 sm:px-[20px] py-8 sm:py-0">
+      <div class="flex flex-col gap-3 sm:gap-3 flex-1 justify-center items-center w-full sm:w-auto order-2 sm:order-1">
+        <h3 class="flex flex-col justify-center w-full sm:w-[216px] h-auto sm:h-[61px] text-center text-[#181925] font-open text-xl sm:text-[24px] font-medium leading-[28px] sm:leading-[32px] tracking-[-0.42px] px-4 sm:px-0">Spec Quality<br/>Gates</h3>
+        <p class="flex flex-col justify-center w-full sm:w-[346.055px] h-auto sm:h-[68px] text-center text-[#666] font-open text-sm sm:text-base font-normal leading-5 sm:leading-6 tracking-[-0.32px] px-4 sm:px-0">Validate specifications before code<br class="hidden sm:block"/>generation to catch ambiguity early</p>
       </div>
-      <div class="w-full sm:w-[492px] h-[300px] sm:h-[480px] bg-[#FAFAFA] rounded-[24px] shrink-0 quality-gates-animation overflow-hidden" style="aspect-ratio: 41 / 40;" data-qg-variant="b">
+      <div class="w-full sm:w-[492px] h-[200px] sm:h-[300px] md:h-[480px] bg-[#FAFAFA] rounded-[16px] sm:rounded-[24px] shrink-0 quality-gates-animation overflow-hidden order-1 sm:order-2" style="aspect-ratio: 41 / 40;" data-qg-variant="b">
         <svg viewBox="0 0 400 480" xmlns="http://www.w3.org/2000/svg" class="w-full h-full qg-variant qg-a">
           <defs>
             <marker id="qg-arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
@@ -2418,8 +2452,8 @@
     </div>
 
     <!-- FAQ Item 3 -->
-    <div class="flex flex-col sm:flex-row items-center gap-6 w-[1024px] h-[480px] px-[20px]">
-      <div class="w-full sm:w-[492px] h-[300px] sm:h-[480px] bg-[#FAFAFA] rounded-[24px] shrink-0 retroactive-spec-animation overflow-hidden" style="aspect-ratio: 41/40;" data-retro-variant="k">
+    <div class="flex flex-col sm:flex-row items-center gap-8 sm:gap-6 w-full sm:w-[1024px] h-auto sm:h-[480px] px-4 sm:px-[20px] py-8 sm:py-0">
+      <div class="w-full sm:w-[492px] h-[200px] sm:h-[300px] md:h-[480px] bg-[#FAFAFA] rounded-[16px] sm:rounded-[24px] shrink-0 retroactive-spec-animation overflow-hidden" style="aspect-ratio: 41/40;" data-retro-variant="k">
         <svg viewBox="0 0 400 480" xmlns="http://www.w3.org/2000/svg" class="w-full h-full retro-variant retro-a">
           <defs>
             <linearGradient id="retroTimelineGradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -2856,28 +2890,28 @@
           </g>
         </svg>
       </div>
-      <div class="flex flex-col gap-3 flex-1 justify-center items-center">
-        <h3 class="flex flex-col justify-center w-[216px] h-[61px] text-center text-[#181925] font-open text-[24px] font-medium leading-[32px] tracking-[-0.42px]">Retroactive<br/>Spec Creation</h3>
-        <p class="flex flex-col justify-center w-[346.055px] h-[61px] text-center text-[#666] font-open text-base font-normal leading-6 tracking-[-0.32px]">For hot fixes, allow documenting<br/>what was done after the fact</p>
+      <div class="flex flex-col gap-3 sm:gap-3 flex-1 justify-center items-center w-full sm:w-auto">
+        <h3 class="flex flex-col justify-center w-full sm:w-[216px] h-auto sm:h-[61px] text-center text-[#181925] font-open text-xl sm:text-[24px] font-medium leading-[28px] sm:leading-[32px] tracking-[-0.42px] px-4 sm:px-0">Retroactive<br/>Spec Creation</h3>
+        <p class="flex flex-col justify-center w-full sm:w-[346.055px] h-auto sm:h-[61px] text-center text-[#666] font-open text-sm sm:text-base font-normal leading-5 sm:leading-6 tracking-[-0.32px] px-4 sm:px-0">For hot fixes, allow documenting<br class="hidden sm:block"/>what was done after the fact</p>
       </div>
     </div>
   </div>
 
   <!-- FAQ Section Copy (Bottom) -->
-  <div id="pricing" class="mt-48 flex flex-col items-center gap-6 self-stretch w-full px-4 sm:px-0" style="color: rgba(237, 237, 237, 1);">
+  <div id="pricing" class="mt-24 sm:mt-32 md:mt-48 flex flex-col items-center gap-4 sm:gap-6 self-stretch w-full px-4 sm:px-0" style="color: rgba(237, 237, 237, 1);">
     <!-- Label -->
     <div class="inline-flex items-center gap-2 py-[6.5px] px-3 rounded-[12px] bg-[#F7F7F7]">
       <span class="text-xs font-medium leading-normal text-[#777] font-open">PRICING</span>
     </div>
 
     <!-- Title -->
-    <h2 class="self-stretch text-center text-[#181925] font-open text-[36px] font-medium leading-[44px] tracking-[-0.64px]">
+    <h2 class="self-stretch text-center text-[#181925] font-open text-2xl sm:text-3xl md:text-[36px] font-medium leading-[32px] sm:leading-[40px] md:leading-[44px] tracking-[-0.64px] px-4 sm:px-0">
       Simplified pricing
     </h2>
 
     <!-- Description -->
-    <p class="self-stretch text-center text-[#777] font-open text-base font-normal leading-6 tracking-[-0.32px] -mt-2">
-      Our pricing is simple and transparent;<br>you just pay for value and scalability.
+    <p class="self-stretch text-center text-[#777] font-open text-sm sm:text-base font-normal leading-5 sm:leading-6 tracking-[-0.32px] -mt-2 px-4 sm:px-0">
+      Our pricing is simple and transparent;<br class="hidden sm:block"/>you just pay for value and scalability.
     </p>
 
     <!-- Pricing Options Menu -->
@@ -2894,7 +2928,7 @@
 
     <!-- Pricing Card - Dynamic Single Plan -->
     <div class="w-full max-w-[400px]">
-      <div class="rounded-[24px] border border-[#EDEDED] bg-white p-8 flex flex-col gap-6">
+      <div class="rounded-[20px] sm:rounded-[24px] border border-[#EDEDED] bg-white p-6 sm:p-8 flex flex-col gap-4 sm:gap-6">
         <!-- Title Section -->
         <div class="flex items-center justify-between gap-2">
           <h2 class="text-lg md:text-xl font-medium text-[#181925] font-open">
@@ -2907,8 +2941,8 @@
         
         <!-- Price Section - Top -->
         <div class="flex flex-col items-start gap-2">
-          <p class="text-sm text-[#666] font-open pricing-period">Per month</p>
-          <p class="text-4xl font-medium text-[#181925] font-open pricing-amount">$9</p>
+          <p class="text-xs sm:text-sm text-[#666] font-open pricing-period">Per month</p>
+          <p class="text-3xl sm:text-4xl font-medium text-[#181925] font-open pricing-amount">$9</p>
         </div>
         
         <!-- Features Section -->
@@ -4049,7 +4083,7 @@
   </script>
 
   <!-- FAQ Section Copy (Bottom) -->
-  <div id="faq" class="mt-48 flex flex-col items-center gap-6 self-stretch w-full px-4 sm:px-0" style="color: rgba(237, 237, 237, 1);">
+  <div id="faq" class="mt-24 sm:mt-32 md:mt-48 flex flex-col items-center gap-4 sm:gap-6 self-stretch w-full px-4 sm:px-0" style="color: rgba(237, 237, 237, 1);">
     <!-- Label -->
     <div class="inline-flex items-center gap-2 py-[6.5px] px-3 rounded-[12px] bg-[#F7F7F7]">
       <span class="text-xs font-medium leading-normal text-[#777] font-open">FAQ</span>
@@ -4162,8 +4196,8 @@
   </main>
 
   <!-- Footer -->
-  <footer class="mt-48 mb-8 w-full px-4 sm:px-6" role="contentinfo">
-    <div class="flex flex-col items-center justify-between w-full max-w-[1024px] mx-auto p-8 gap-8 lg:text-left lg:flex-row bg-gradient-to-b from-white to-[#F7F7F7] rounded-3xl border border-[#EDEDED]" style="border-color: rgba(247, 247, 247, 1);">
+  <footer class="mt-24 sm:mt-32 md:mt-48 mb-6 sm:mb-8 w-full px-4 sm:px-6" role="contentinfo">
+    <div class="flex flex-col items-center justify-between w-full max-w-[1024px] mx-auto p-6 sm:p-8 gap-6 sm:gap-8 lg:text-left lg:flex-row bg-gradient-to-b from-white to-[#F7F7F7] rounded-2xl sm:rounded-3xl border border-[#EDEDED]" style="border-color: rgba(247, 247, 247, 1);">
       <div class="flex justify-center w-full lg:justify-start">
         <a href="index.html" aria-label="Meyn AI Home">
           <img src="./Group 2.svg" alt="Meyn AI Logo" class="h-8 w-auto" width="32" height="32" loading="lazy" style="filter: brightness(0) saturate(100%) invert(9%) sepia(8%) saturate(2000%) hue-rotate(200deg) brightness(95%) contrast(95%);" />
