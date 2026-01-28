@@ -161,7 +161,7 @@
     .investor-text:nth-child(15) { transition-delay: 1.5s; }
   </style>
 </head>
-<body class="min-h-screen bg-[#FFFFFF] flex flex-col items-center font-open text-textMuted pt-24 sm:pt-32 md:pt-[176px] px-4 sm:px-6">
+<body class="min-h-screen bg-[#FFFFFF] flex flex-col items-center font-open text-textMuted pt-20 sm:pt-24 md:pt-32 lg:pt-[176px] px-4 sm:px-6">
   <!-- Accessibility: Skip to main content link -->
   <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-primary focus:text-white focus:rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
     Skip to main content
@@ -169,7 +169,7 @@
   
   <div class="relative w-full flex justify-center">
     <header
-      class="fixed top-8 left-1/2 -translate-x-1/2 z-50 h-12 inline-flex flex-nowrap items-center gap-4 pl-4 pr-2 py-2 rounded-[200px] border border-black/5 bg-[#14141F] backdrop-blur-md shadow-[0_1px_4px_rgba(0,0,0,0.08),0_0_0_1px_rgba(0,0,0,0.05)] max-w-none"
+      class="fixed top-4 sm:top-8 left-1/2 -translate-x-1/2 z-50 h-11 sm:h-12 inline-flex flex-nowrap items-center gap-2 sm:gap-4 pl-3 sm:pl-4 pr-2 py-2 rounded-[200px] border border-black/5 bg-[#14141F] backdrop-blur-md shadow-[0_1px_4px_rgba(0,0,0,0.08),0_0_0_1px_rgba(0,0,0,0.05)] max-w-[calc(100%-32px)] sm:max-w-none"
       role="banner"
       aria-label="Main navigation"
     >
@@ -179,19 +179,19 @@
         </a>
       </div>
       <a
-        class="inline text-sm leading-5 tracking-[-0.32px] text-textMuted hover:text-white transition-colors"
+        class="inline text-xs sm:text-sm leading-5 tracking-[-0.32px] text-textMuted hover:text-white transition-colors whitespace-nowrap"
         href="manifesto.html"
       >
         Manifesto
       </a>
       <a
-        class="inline text-sm leading-5 tracking-[-0.32px] text-textMuted hover:text-white transition-colors"
+        class="inline text-xs sm:text-sm leading-5 tracking-[-0.32px] text-textMuted hover:text-white transition-colors whitespace-nowrap"
         href="investors.html"
       >
         Investors
       </a>
       <button
-        class="waitlist-trigger inline-flex items-center justify-center gap-[10px] text-sm leading-[18px] tracking-[-0.32px] text-white bg-primary hover:bg-[#0099CC] rounded-[999px] px-3 py-[7px] shadow-[0_1px_1px_0_rgba(0,0,0,0.08),0_0_0_1px_rgba(0,0,0,0.05)] transition-colors"
+        class="waitlist-trigger inline-flex items-center justify-center gap-[8px] sm:gap-[10px] text-xs sm:text-sm leading-[18px] tracking-[-0.32px] text-white bg-primary hover:bg-[#0099CC] rounded-[999px] px-2.5 sm:px-3 py-[6px] sm:py-[7px] shadow-[0_1px_1px_0_rgba(0,0,0,0.08),0_0_0_1px_rgba(0,0,0,0.05)] transition-colors whitespace-nowrap"
         type="button"
       >
         Join waitlist
@@ -223,7 +223,7 @@
   </div>
 
   <!-- Body Section -->
-  <div id="investors" class="w-full max-w-[640px] px-0 mt-24 mb-24">
+  <div id="investors" class="w-full max-w-[640px] px-0 mt-12 sm:mt-16 md:mt-24 mb-12 sm:mb-16 md:mb-24">
     <div class="prose prose-lg max-w-none">
       <div class="space-y-6 sm:space-y-8 md:space-y-10 text-[#181925]">
         <!-- Investor content will be inserted here by JavaScript -->
@@ -302,8 +302,8 @@
   </div>
 
   <!-- Footer -->
-  <footer class="mb-8 w-full px-4 sm:px-6">
-    <div class="flex flex-col items-center justify-between w-full max-w-[1024px] mx-auto p-8 gap-8 lg:text-left lg:flex-row bg-gradient-to-b from-white to-[#F7F7F7] rounded-3xl border border-[#EDEDED]" style="border-color: rgba(247, 247, 247, 1);">
+  <footer class="mt-24 sm:mt-32 md:mt-48 mb-6 sm:mb-8 w-full px-4 sm:px-6">
+    <div class="flex flex-col items-center justify-between w-full max-w-[1024px] mx-auto p-6 sm:p-8 gap-6 sm:gap-8 lg:text-left lg:flex-row bg-gradient-to-b from-white to-[#F7F7F7] rounded-2xl sm:rounded-3xl border border-[#EDEDED]" style="border-color: rgba(247, 247, 247, 1);">
       <div class="flex justify-center w-full lg:justify-start">
         <a href="index.html">
           <img src="./Group 2.svg" alt="Meyn AI Logo" class="h-8 w-auto" width="32" height="32" loading="lazy" style="filter: brightness(0) saturate(100%) invert(9%) sepia(8%) saturate(2000%) hue-rotate(200deg) brightness(95%) contrast(95%);" />
@@ -1194,18 +1194,52 @@
     @media (max-width: 640px) {
       .waitlist-modal-content {
         width: 95%;
-        padding: 16px;
-        border-radius: 16px;
+        max-width: 100%;
+        padding: 24px 20px;
+        border-radius: 20px;
+        margin: 16px;
+      }
+      
+      .waitlist-modal-header {
+        margin-bottom: 16px;
       }
       
       .waitlist-modal-title {
-        font-size: 20px;
-        line-height: 28px;
+        font-size: 22px;
+        line-height: 30px;
       }
       
       .waitlist-modal-description {
-        font-size: 14px;
+        font-size: 15px;
+        line-height: 22px;
         margin-bottom: 24px;
+      }
+      
+      .waitlist-modal-form-group {
+        flex-direction: column;
+        gap: 12px;
+      }
+      
+      .waitlist-modal-input-wrapper {
+        width: 100%;
+      }
+      
+      .waitlist-modal-input {
+        width: 100%;
+        padding: 14px 16px 14px 44px;
+        font-size: 16px;
+      }
+      
+      .waitlist-modal-submit {
+        width: 100%;
+        padding: 14px;
+        font-size: 16px;
+        min-height: 48px;
+      }
+      
+      .waitlist-modal-footer {
+        margin-top: 20px;
+        font-size: 14px;
       }
     }
     
