@@ -407,6 +407,7 @@ export default async function handler(req, res) {
           throw sheetError; // Re-throw to be caught by outer catch
         }
         break;
+      }
 
       case 'getWaitlistCount': {
         // Get total waitlist count (excluding header row)
