@@ -297,24 +297,45 @@ export default async function handler(req, res) {
           console.log('[addToWaitlist] Mapped row data:', JSON.stringify(rowData, null, 2));
           
           try {
+            // Ensure rowData has at least Email field (required by Google Sheets)
+            if (!rowData || Object.keys(rowData).length === 0) {
+              // If no columns matched, try adding with default column names
+              rowData['Email'] = emailValue;
+              if (values.createdDate) rowData['Created Date'] = values.createdDate || new Date().toISOString();
+              if (values.browser) rowData['Browser'] = values.browser || '';
+              if (values.os) rowData['OS'] = values.os || '';
+              if (values.device) rowData['Device'] = values.device || '';
+              if (values.userAgent) rowData['User Agent'] = values.userAgent || '';
+              if (values.language) rowData['Language'] = values.language || '';
+              if (values.timezone) rowData['Timezone'] = values.timezone || '';
+              if (values.formSource) rowData['Form Source'] = values.formSource || 'modal';
+              if (values.selectedOption) rowData['Selected Option'] = values.selectedOption;
+            }
+            
+            console.log('[addToWaitlist] Attempting to add row with data:', JSON.stringify(rowData, null, 2));
+            console.log('[addToWaitlist] Available headers:', headerValues);
+            
             const addedRow = await waitlistSheet.addRow(rowData);
             console.log('[addToWaitlist] Row added successfully to sheet');
-            console.log('[addToWaitlist] Added row data:', addedRow);
-            
-            // Verify the row was added by checking if we can read it back
-            const verifyRows = await waitlistSheet.getRows({ limit: 1, offset: 0 });
-            console.log('[addToWaitlist] Verification - Last row:', verifyRows.length > 0 ? verifyRows[verifyRows.length - 1] : 'No rows found');
+            console.log('[addToWaitlist] Added row ID:', addedRow._rowNumber || 'unknown');
           } catch (addRowError) {
             console.error('[addToWaitlist] Error adding row:', addRowError);
-            console.error('[addToWaitlist] Error details:', addRowError.message);
+            console.error('[addToWaitlist] Error name:', addRowError.name);
+            console.error('[addToWaitlist] Error message:', addRowError.message);
             console.error('[addToWaitlist] Error stack:', addRowError.stack);
             console.error('[addToWaitlist] Row data that failed:', JSON.stringify(rowData, null, 2));
+            console.error('[addToWaitlist] Sheet headers:', headerValues);
+            
+            // Provide more specific error message
+            if (addRowError.message && addRowError.message.includes('column')) {
+              throw new Error(`Column mapping error: ${addRowError.message}. Available columns: ${headerValues.join(', ')}`);
+            }
             throw addRowError;
           }
           
           // Get updated count after adding email (use same logic as getWaitlistCount)
           const rows = await waitlistSheet.getRows();
-          const headerValues = waitlistSheet.headerValues;
+          const countHeaderValues = waitlistSheet.headerValues;
           
           let validEmailCount = 0;
           rows.forEach((row, index) => {
@@ -329,8 +350,8 @@ export default async function handler(req, res) {
                 email = row.Email || row.email || row.EMAIL || '';
               }
               
-              if (!email && headerValues && headerValues.length > 0) {
-                const emailIndex = headerValues.findIndex(h => h.toLowerCase() === 'email');
+              if (!email && countHeaderValues && countHeaderValues.length > 0) {
+                const emailIndex = countHeaderValues.findIndex(h => h.toLowerCase() === 'email');
                 if (emailIndex >= 0 && row._rawData && row._rawData[emailIndex]) {
                   email = row._rawData[emailIndex] || '';
                 }
@@ -458,9 +479,12 @@ export default async function handler(req, res) {
     return res.status(200).json(result);
   } catch (error) {
     console.error('[SHEETS PROXY ERROR]', error);
+    console.error('[SHEETS PROXY ERROR] Name:', error.name);
+    console.error('[SHEETS PROXY ERROR] Message:', error.message);
     console.error('[SHEETS PROXY ERROR] Stack:', error.stack);
     console.error('[SHEETS PROXY ERROR] Action:', req.body?.action);
     console.error('[SHEETS PROXY ERROR] Sheet ID:', targetSheetId);
+    console.error('[SHEETS PROXY ERROR] Full error:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
     
     // Check for specific error types
     let statusCode = 500;
@@ -481,6 +505,9 @@ export default async function handler(req, res) {
     } else if (errorStr.includes('sheet') && errorStr.includes('not found')) {
       statusCode = 404;
       errorMessage = 'Sheet tab not found. Please ensure the Google Sheet has the correct tabs.';
+    } else if (errorMsgLower.includes('column') || errorMsgLower.includes('invalid')) {
+      statusCode = 400;
+      errorMessage = `Column mapping error: ${error.message}`;
     }
     
     return res.status(statusCode).json({ 
@@ -488,6 +515,7 @@ export default async function handler(req, res) {
       details: error.toString(),
       action: req.body?.action,
       sheetId: targetSheetId,
+      errorName: error.name,
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
