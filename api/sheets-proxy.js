@@ -251,86 +251,107 @@ export default async function handler(req, res) {
           console.log('[addToWaitlist] Email value:', emailValue);
           console.log('[addToWaitlist] Selected Option:', values.selectedOption);
           
-          // Map data to header column names exactly as they appear in the sheet
-          // This ensures proper column mapping
+          // Build rowData by matching exact header names (case-insensitive)
+          // This is critical - google-spreadsheet requires exact header name matches
           const rowData = {};
           
-          // Find exact header names (case-insensitive matching)
-          headerValues.forEach((header, index) => {
-            const headerLower = header.toLowerCase();
-            
-            if (headerLower === 'email') {
-              rowData[header] = emailValue;
-            } else if (headerLower === 'created date' || headerLower === 'createddate' || headerLower === 'date') {
-              rowData[header] = values.createdDate || new Date().toISOString();
-            } else if (headerLower === 'browser') {
-              rowData[header] = values.browser || '';
-            } else if (headerLower === 'os' || headerLower === 'operating system') {
-              rowData[header] = values.os || '';
-            } else if (headerLower === 'device') {
-              rowData[header] = values.device || '';
-            } else if (headerLower === 'user agent' || headerLower === 'useragent') {
-              rowData[header] = values.userAgent || '';
-            } else if (headerLower === 'language') {
-              rowData[header] = values.language || '';
-            } else if (headerLower === 'timezone') {
-              rowData[header] = values.timezone || '';
-            } else if (headerLower === 'form source' || headerLower === 'formsource' || headerLower === 'source') {
-              rowData[header] = values.formSource || 'modal';
-            } else if (headerLower === 'selected option' || headerLower === 'selectedoption' || headerLower === 'option') {
-              rowData[header] = values.selectedOption || '';
-            }
-          });
+          // Helper function to find header by name (case-insensitive)
+          const findHeader = (searchName) => {
+            return headerValues.find(h => h.toLowerCase() === searchName.toLowerCase());
+          };
           
-          // If Selected Option column doesn't exist in headers but we have a value, add it
-          const hasSelectedOptionColumn = headerValues.some(h => 
-            h.toLowerCase() === 'selected option' || 
-            h.toLowerCase() === 'selectedoption' ||
-            h.toLowerCase() === 'option'
-          );
+          // Map each field to its exact header name
+          const emailHeader = findHeader('email') || findHeader('Email') || 'Email';
+          rowData[emailHeader] = emailValue;
           
-          if (!hasSelectedOptionColumn && values.selectedOption) {
-            // Try to add with common name variations
+          const dateHeader = findHeader('created date') || findHeader('Created Date') || findHeader('Date') || 'Created Date';
+          rowData[dateHeader] = values.createdDate || new Date().toISOString();
+          
+          const browserHeader = findHeader('browser') || findHeader('Browser') || 'Browser';
+          rowData[browserHeader] = values.browser || '';
+          
+          const osHeader = findHeader('os') || findHeader('OS') || findHeader('Operating System') || 'OS';
+          rowData[osHeader] = values.os || '';
+          
+          const deviceHeader = findHeader('device') || findHeader('Device') || 'Device';
+          rowData[deviceHeader] = values.device || '';
+          
+          const userAgentHeader = findHeader('user agent') || findHeader('User Agent') || findHeader('UserAgent') || 'User Agent';
+          rowData[userAgentHeader] = values.userAgent || '';
+          
+          const languageHeader = findHeader('language') || findHeader('Language') || 'Language';
+          rowData[languageHeader] = values.language || '';
+          
+          const timezoneHeader = findHeader('timezone') || findHeader('Timezone') || 'Timezone';
+          rowData[timezoneHeader] = values.timezone || '';
+          
+          const formSourceHeader = findHeader('form source') || findHeader('Form Source') || findHeader('FormSource') || findHeader('Source') || 'Form Source';
+          rowData[formSourceHeader] = values.formSource || 'modal';
+          
+          // Selected Option - only add if column exists or if we have a value
+          const selectedOptionHeader = findHeader('selected option') || findHeader('Selected Option') || findHeader('SelectedOption') || findHeader('Option');
+          if (selectedOptionHeader) {
+            rowData[selectedOptionHeader] = values.selectedOption || '';
+          } else if (values.selectedOption) {
+            // Column doesn't exist, but we'll try adding it anyway
             rowData['Selected Option'] = values.selectedOption;
           }
           
-          console.log('[addToWaitlist] Mapped row data:', JSON.stringify(rowData, null, 2));
+          console.log('[addToWaitlist] Final row data to add:', JSON.stringify(rowData, null, 2));
+          console.log('[addToWaitlist] Sheet headers found:', headerValues);
+          console.log('[addToWaitlist] Email header used:', emailHeader);
           
           try {
-            // Ensure rowData has at least Email field (required by Google Sheets)
-            if (!rowData || Object.keys(rowData).length === 0) {
-              // If no columns matched, try adding with default column names
-              rowData['Email'] = emailValue;
-              if (values.createdDate) rowData['Created Date'] = values.createdDate || new Date().toISOString();
-              if (values.browser) rowData['Browser'] = values.browser || '';
-              if (values.os) rowData['OS'] = values.os || '';
-              if (values.device) rowData['Device'] = values.device || '';
-              if (values.userAgent) rowData['User Agent'] = values.userAgent || '';
-              if (values.language) rowData['Language'] = values.language || '';
-              if (values.timezone) rowData['Timezone'] = values.timezone || '';
-              if (values.formSource) rowData['Form Source'] = values.formSource || 'modal';
-              if (values.selectedOption) rowData['Selected Option'] = values.selectedOption;
-            }
-            
-            console.log('[addToWaitlist] Attempting to add row with data:', JSON.stringify(rowData, null, 2));
-            console.log('[addToWaitlist] Available headers:', headerValues);
-            
+            // Use addRow with the mapped data
             const addedRow = await waitlistSheet.addRow(rowData);
-            console.log('[addToWaitlist] Row added successfully to sheet');
-            console.log('[addToWaitlist] Added row ID:', addedRow._rowNumber || 'unknown');
-          } catch (addRowError) {
-            console.error('[addToWaitlist] Error adding row:', addRowError);
-            console.error('[addToWaitlist] Error name:', addRowError.name);
-            console.error('[addToWaitlist] Error message:', addRowError.message);
-            console.error('[addToWaitlist] Error stack:', addRowError.stack);
-            console.error('[addToWaitlist] Row data that failed:', JSON.stringify(rowData, null, 2));
-            console.error('[addToWaitlist] Sheet headers:', headerValues);
+            console.log('[addToWaitlist] ✅ Row added successfully!');
+            console.log('[addToWaitlist] Row number:', addedRow._rowNumber);
+            console.log('[addToWaitlist] Row saved:', addedRow.save ? 'needs save' : 'auto-saved');
             
-            // Provide more specific error message
-            if (addRowError.message && addRowError.message.includes('column')) {
-              throw new Error(`Column mapping error: ${addRowError.message}. Available columns: ${headerValues.join(', ')}`);
+            // Save the row explicitly to ensure it's persisted
+            if (addedRow.save) {
+              await addedRow.save();
+              console.log('[addToWaitlist] Row explicitly saved');
             }
-            throw addRowError;
+          } catch (addRowError) {
+            console.error('[addToWaitlist] ❌ Error adding row:', addRowError);
+            console.error('[addToWaitlist] Error type:', addRowError.constructor.name);
+            console.error('[addToWaitlist] Error message:', addRowError.message);
+            console.error('[addToWaitlist] Error code:', addRowError.code);
+            console.error('[addToWaitlist] Error stack:', addRowError.stack);
+            console.error('[addToWaitlist] Row data attempted:', JSON.stringify(rowData, null, 2));
+            console.error('[addToWaitlist] Available headers:', headerValues);
+            
+            // Try alternative approach: use setHeaderRow if headers don't match
+            if (addRowError.message && (addRowError.message.includes('column') || addRowError.message.includes('header'))) {
+              console.log('[addToWaitlist] Attempting alternative: using raw data array');
+              try {
+                // Create array matching header order
+                const rowArray = headerValues.map(header => {
+                  const headerLower = header.toLowerCase();
+                  if (headerLower === 'email') return emailValue;
+                  if (headerLower === 'created date' || headerLower === 'createddate' || headerLower === 'date') return values.createdDate || new Date().toISOString();
+                  if (headerLower === 'browser') return values.browser || '';
+                  if (headerLower === 'os' || headerLower === 'operating system') return values.os || '';
+                  if (headerLower === 'device') return values.device || '';
+                  if (headerLower === 'user agent' || headerLower === 'useragent') return values.userAgent || '';
+                  if (headerLower === 'language') return values.language || '';
+                  if (headerLower === 'timezone') return values.timezone || '';
+                  if (headerLower === 'form source' || headerLower === 'formsource' || headerLower === 'source') return values.formSource || 'modal';
+                  if (headerLower === 'selected option' || headerLower === 'selectedoption' || headerLower === 'option') return values.selectedOption || '';
+                  return '';
+                });
+                
+                // Use addRows with array format
+                await waitlistSheet.addRows([rowArray]);
+                console.log('[addToWaitlist] ✅ Row added using array format');
+              } catch (arrayError) {
+                console.error('[addToWaitlist] ❌ Array format also failed:', arrayError);
+                throw addRowError; // Throw original error
+              }
+            } else {
+              throw addRowError;
+            }
           }
           
           // Get updated count after adding email (use same logic as getWaitlistCount)
