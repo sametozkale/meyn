@@ -1,0 +1,37 @@
+# Meyn AI - LLMs.txt
+
+## About
+Meyn AI is building PromptOps, a platform that orchestrates AI coding agents with structured specs, real-time feature tracking, and visual spec-to-code traceability.
+
+## Website
+https://meyn.work/
+
+## Main Pages
+- Homepage: https://meyn.work/
+- Manifesto: https://meyn.work/manifesto.html
+- Investors: https://meyn.work/investors.html
+
+## Product
+PromptOps platform for vibe coders - A platform that orchestrates your AI coding agents with structured specs, real-time tracking, and visual traceability.
+
+## Key Features
+- Structured specs for AI coding agents
+- Real-time feature tracking
+- Visual spec-to-code traceability
+- Automated drift detection
+- Version history and traceability
+- Spec quality gates
+- Retroactive spec creation
+
+## Contact
+Website: https://meyn.work/
+Waitlist: Available on homepage
+
+## Technology Stack
+- Frontend: HTML, CSS (Tailwind CSS), JavaScript
+- Backend: Vercel Serverless Functions
+- Data Storage: Google Sheets API
+- Hosting: Vercel
+
+## Last Updated
+2025-01-24

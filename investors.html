@@ -60,6 +60,22 @@
     
     body {
       font-family: "Open Runde", "Inter", system-ui, -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+    }
+    
+    /* Mobile Safari font rendering fixes */
+    @supports (-webkit-touch-callout: none) {
+      body {
+        -webkit-font-smoothing: antialiased;
+        -webkit-text-size-adjust: 100%;
+      }
+      
+      h1, h2, h3, h4, h5, h6, p, span, a, button {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
     }
     
     /* Screen reader only class for accessibility */
@@ -200,7 +216,7 @@
   </div>
 
   <!-- Hero Section -->
-  <main id="main-content" role="main" class="flex flex-col items-center gap-4 sm:gap-6 w-full max-w-[640px] px-0">
+  <main id="main-content" role="main" class="flex flex-col items-center gap-4 sm:gap-6 w-full max-w-[640px] px-0 mt-8 sm:mt-0">
     <!-- Badge -->
     <div class="inline-flex flex-wrap items-center justify-center gap-2 py-[6.5px] px-3 rounded-[99px] bg-[#F7F7F7]">
       <span class="text-xs font-medium leading-normal text-[#777] font-open">Our Journey</span>
